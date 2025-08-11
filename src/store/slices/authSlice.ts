@@ -1,11 +1,11 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
-import { auth } from '../../firebase/config'
-import { 
-  signInWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged,
-  User 
-} from 'firebase/auth'
+
+interface User {
+  id: string
+  email: string
+  name: string
+  role: 'admin' | 'user'
+}
 
 interface AuthState {
   user: User | null
@@ -17,34 +17,60 @@ interface AuthState {
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
-  loading: true,
+  loading: false,
   error: null,
+}
+
+// Mock admin user for demo purposes
+const MOCK_ADMIN = {
+  id: '1',
+  email: 'admin@volabarato.com',
+  name: 'Administrador',
+  role: 'admin' as const
 }
 
 export const loginUser = createAsyncThunk(
   'auth/login',
   async ({ email, password }: { email: string; password: string }) => {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password)
-    return userCredential.user
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    // Simple authentication logic
+    if (email === 'admin@volabarato.com' && password === 'admin123') {
+      const user = MOCK_ADMIN
+      // Save to localStorage
+      localStorage.setItem('user', JSON.stringify(user))
+      return user
+    } else {
+      throw new Error('Credenciales inválidas')
+    }
   }
 )
 
 export const logoutUser = createAsyncThunk(
   'auth/logout',
   async () => {
-    await signOut(auth)
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500))
+    // Remove from localStorage
+    localStorage.removeItem('user')
   }
 )
 
 export const checkAuthStatus = createAsyncThunk(
   'auth/checkStatus',
   async () => {
-    return new Promise<User | null>((resolve) => {
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-        unsubscribe()
-        resolve(user)
-      })
-    })
+    // Check localStorage for existing user
+    const userStr = localStorage.getItem('user')
+    if (userStr) {
+      try {
+        return JSON.parse(userStr) as User
+      } catch {
+        localStorage.removeItem('user')
+        return null
+      }
+    }
+    return null
   }
 )
 

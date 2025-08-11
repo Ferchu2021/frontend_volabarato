@@ -26,10 +26,10 @@ Aplicación web completa para la agencia de turismo "Volá Barato" desarrollada 
 - **CSS3** con variables CSS y Flexbox/Grid
 - **React Icons** para iconografía
 
-### Backend (Próximamente)
-- **Node.js** con Express
-- **MongoDB** con Mongoose
-- **JWT** para autenticación
+### Backend
+- **localStorage** para persistencia de datos
+- **Simulación de API** con delays realistas
+- **Autenticación local** con credenciales hardcodeadas
 - **Joi** para validaciones
 
 ## 📱 Funcionalidades Principales
@@ -72,24 +72,13 @@ cd volabarato_frontend
 npm install
 ```
 
-### 3. Configurar variables de entorno
-Crear un archivo `.env` en la raíz del proyecto:
+### 3. Configuración de Autenticación
+La aplicación incluye un usuario administrador predefinido:
 
-```env
-VITE_FIREBASE_API_KEY=tu_api_key_aqui
-VITE_FIREBASE_AUTH_DOMAIN=tu_auth_domain_aqui
-VITE_FIREBASE_PROJECT_ID=tu_project_id_aqui
-VITE_FIREBASE_STORAGE_BUCKET=tu_storage_bucket_aqui
-VITE_FIREBASE_MESSAGING_SENDER_ID=tu_messaging_sender_id_aqui
-VITE_FIREBASE_APP_ID=tu_app_id_aqui
-VITE_API_URL=http://localhost:5000/api
-```
+- **Email**: `admin@volabarato.com`
+- **Password**: `admin123`
 
-### 4. Configurar Firebase
-1. Crear un proyecto en [Firebase Console](https://console.firebase.google.com/)
-2. Habilitar Authentication con Email/Password
-3. Obtener las credenciales de configuración
-4. Agregar las credenciales al archivo `.env`
+> **Nota**: Estas credenciales están hardcodeadas para demostración. En producción, deberías implementar un sistema de autenticación real.
 
 ### 5. Ejecutar en desarrollo
 ```bash
@@ -124,11 +113,11 @@ src/
 
 ## 🔐 Autenticación
 
-La aplicación utiliza Firebase Authentication para el manejo de usuarios:
+La aplicación utiliza un sistema de autenticación local para demostración:
 
-- **Login**: Formulario de acceso con validaciones
+- **Login**: Formulario de acceso con credenciales predefinidas
 - **Protección de rutas**: Rutas privadas protegidas por autenticación
-- **JWT**: Tokens para mantener la sesión del usuario
+- **localStorage**: Persistencia de sesión del usuario
 - **Logout**: Cierre de sesión seguro
 
 ## 📊 Estado de la Aplicación
@@ -174,11 +163,11 @@ La aplicación se puede desplegar en cualquier proveedor que soporte aplicacione
 
 ## 📝 Próximas Funcionalidades
 
-- [ ] Integración con backend Node.js
-- [ ] Base de datos MongoDB
-- [ ] Sistema de reservas online
+- [x] Sistema de reservas online (localStorage)
+- [x] Panel de estadísticas básico
+- [ ] Integración con backend real
+- [ ] Base de datos en la nube
 - [ ] Notificaciones por email
-- [ ] Panel de estadísticas avanzado
 - [ ] Sistema de pagos
 - [ ] Aplicación móvil nativa
 
