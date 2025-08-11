@@ -1,8 +1,24 @@
 .footer {
-  background: var(--text-primary);
-  color: white;
+  background: var(--background-secondary);
+  color: var(--text-primary);
   padding: 3rem 0 1rem;
   margin-top: auto;
+}
+
+.footer-logo {
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.footer-logo-image {
+  height: 50px;
+  width: auto;
+  transition: transform 0.3s ease;
+}
+
+.footer-logo-image:hover {
+  transform: scale(1.05);
 }
 
 .footer-content {

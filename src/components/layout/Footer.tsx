@@ -9,6 +9,13 @@ const Footer = () => {
       <div className="container">
         <div className="footer-content">
           <div className="footer-section">
+            <div className="footer-logo">
+              <img 
+                src="/images/logo.svg" 
+                alt="Volá Barato Logo" 
+                className="footer-logo-image"
+              />
+            </div>
             <h3>Volá Barato</h3>
             <p>
               Para quienes viajan con el cuerpo y también con la imaginación. 

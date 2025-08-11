@@ -53,6 +53,13 @@ const Home = () => {
       {/* Hero Section */}
       <section className="hero">
         <div className="hero-content">
+          <div className="hero-logo">
+            <img 
+              src="/images/logo.svg" 
+              alt="Volá Barato Logo" 
+              className="hero-logo-image"
+            />
+          </div>
           <h1>Volá Barato</h1>
           <p>
             Volá Barato es para quienes viajan con el cuerpo y también con la imaginación. 
@@ -62,7 +69,7 @@ const Home = () => {
           </p>
           <div className="hero-buttons">
             <Link to="/viajes" className="btn btn-primary">
-              Ver Viajes
+              Ver Ofertas
             </Link>
             <Link to="/contacto" className="btn btn-outline">
               Contactanos
@@ -109,7 +116,7 @@ const Home = () => {
         <div className="container">
           <h2 className="section-title">¿Por qué elegirnos?</h2>
           <p className="section-subtitle">
-            Somos expertos en crear experiencias de viaje únicas y memorables
+          En Volá Barato creemos que viajar no tiene por qué costar tanto. Te ofrecemos experiencias de calidad, a precios que se ajustan a vos, para que descubras y te conectes con la magia de cada destino.
           </p>
           <div className="features-grid">
             <div className="feature-card">

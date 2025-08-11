@@ -31,6 +31,23 @@
   z-index: 2;
 }
 
+.hero-logo {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.hero-logo-image {
+  height: 80px;
+  width: auto;
+  filter: brightness(0) invert(1); /* Hace el logo blanco */
+  transition: transform 0.3s ease;
+}
+
+.hero-logo-image:hover {
+  transform: scale(1.1);
+}
+
 .hero h1 {
   font-size: 3.5rem;
   font-weight: 800;

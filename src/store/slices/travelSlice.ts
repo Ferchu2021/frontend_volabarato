@@ -9,7 +9,7 @@ export interface Travel {
   duration: string
   departureDate: string
   returnDate: string
-  image: string
+  images: string[]
   category: string
   maxTravelers: number
   availableSpots: number
@@ -70,7 +70,11 @@ export const fetchTravels = createAsyncThunk(
         duration: '5 días / 4 noches',
         departureDate: '2024-07-15',
         returnDate: '2024-07-19',
-        image: 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=500',
+        images: [
+          'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=500',
+          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500',
+          'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500'
+        ],
         category: 'Aventura',
         maxTravelers: 20,
         availableSpots: 15,
@@ -87,7 +91,11 @@ export const fetchTravels = createAsyncThunk(
         duration: '7 días / 6 noches',
         departureDate: '2024-08-20',
         returnDate: '2024-08-26',
-        image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500',
+        images: [
+          'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500',
+          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500',
+          'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=500'
+        ],
         category: 'Playa',
         maxTravelers: 25,
         availableSpots: 20,

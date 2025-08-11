@@ -18,6 +18,15 @@
   color: var(--primary-color);
   font-size: 1.5rem;
   font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.brand-logo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
 }
 
 .brand-text {
@@ -25,6 +34,16 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+.brand-text.fallback {
+  display: none;
+}
+
+/* Cuando no hay logo, mostrar el texto */
+.navbar-brand:not(:has(.brand-logo)) .brand-text.fallback,
+.navbar-brand .brand-text.fallback {
+  display: inline;
 }
 
 .navbar-menu {

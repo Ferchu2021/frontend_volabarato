@@ -8,7 +8,7 @@ interface Travel {
   destination: string
   price: number
   duration: string
-  image: string
+  images: string[]
   description: string
   category: string
 }
@@ -30,7 +30,10 @@ const Travels = () => {
         destination: 'Rosario, Argentina',
         price: 15000,
         duration: '2 días',
-        image: '/images/helado-rosario.jpg',
+        images: [
+          'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=500',
+          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500'
+        ],
         description: 'Descubrí la capital nacional del helado con un recorrido por las mejores heladerías artesanales. Incluye degustaciones, visitas a fábricas y experiencias gastronómicas únicas.',
         category: 'Gastronomía'
       },
@@ -40,7 +43,10 @@ const Travels = () => {
         destination: 'Varios destinos',
         price: 25000,
         duration: '3-5 días',
-        image: '/images/solos-solas.jpg',
+        images: [
+          'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500',
+          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500'
+        ],
         description: 'Viajes diseñados especialmente para viajeros solos que quieren conocer gente nueva. Grupos reducidos, actividades sociales y alojamiento compartido.',
         category: 'Social'
       },
@@ -50,7 +56,10 @@ const Travels = () => {
         destination: 'Sierras de Córdoba',
         price: 18000,
         duration: '2 días',
-        image: '/images/team-building.jpg',
+        images: [
+          'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=500',
+          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500'
+        ],
         description: 'Experiencias corporativas que fortalecen equipos y crean vínculos duraderos. Actividades outdoor, talleres de liderazgo y momentos de conexión.',
         category: 'Corporativo'
       },
@@ -60,7 +69,10 @@ const Travels = () => {
         destination: 'Rosario, Argentina',
         price: 12000,
         duration: '1 día',
-        image: '/images/rosario-futbol.jpg',
+        images: [
+          'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500',
+          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500'
+        ],
         description: 'Un recorrido por la historia futbolística de la ciudad que vio nacer a Messi. Visita al Monumento a la Bandera, estadios y museos deportivos.',
         category: 'Deportes'
       },
@@ -70,7 +82,10 @@ const Travels = () => {
         destination: 'Puerto Iguazú, Argentina',
         price: 35000,
         duration: '4 días',
-        image: '/images/cataratas.jpg',
+        images: [
+          'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=500',
+          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500'
+        ],
         description: 'Explorá una de las maravillas naturales del mundo. Trekking, navegación por el río Iguazú y experiencias en la selva misionera.',
         category: 'Aventura'
       },
@@ -80,7 +95,10 @@ const Travels = () => {
         destination: 'Mendoza, Argentina',
         price: 28000,
         duration: '3 días',
-        image: '/images/mendoza-vinos.jpg',
+        images: [
+          'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500',
+          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500'
+        ],
         description: 'Recorré las mejores bodegas de la región, degustá vinos premium y disfrutá de la gastronomía local en un entorno de montaña.',
         category: 'Cultural'
       }
@@ -214,7 +232,7 @@ const Travels = () => {
             {filteredTravels.map(travel => (
               <div key={travel.id} className="travel-card">
                 <div className="travel-image">
-                  <img src={travel.image} alt={travel.title} />
+                  <img src={travel.images[0]} alt={travel.title} />
                   <div className="travel-category">{travel.category}</div>
                 </div>
                 
