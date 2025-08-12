@@ -1,21 +1,25 @@
 .navbar {
-  background: var(--background-primary);
-  box-shadow: var(--shadow-sm);
-  position: sticky;
+  background: #F7680C;
+  padding: 0.25rem 0;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .navbar .container {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem;
+  padding: 0.5rem;
+  height: 100%;
 }
 
 .navbar-brand {
   text-decoration: none;
-  color: var(--primary-color);
+  color: white;
   font-size: 1.5rem;
   font-weight: 700;
   display: flex;
@@ -24,9 +28,26 @@
 }
 
 .brand-logo {
-  height: 40px;
+  height: 80px;
   width: auto;
   object-fit: contain;
+}
+
+.brand-text-logo {
+  height: 100%;
+  width: auto;
+  object-fit: contain;
+  margin-left: 1rem;
+}
+
+.brand-logo:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.brand-text-logo:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .brand-text {
@@ -54,7 +75,7 @@
 
 .nav-link {
   text-decoration: none;
-  color: var(--text-primary);
+  color: white;
   font-weight: 500;
   transition: color 0.2s ease;
   display: flex;
@@ -63,7 +84,7 @@
 }
 
 .nav-link:hover {
-  color: var(--primary-color);
+  color: #ffe4b5; /* Naranja claro para el hover */
 }
 
 .nav-icon {
@@ -71,7 +92,7 @@
 }
 
 .login-btn {
-  background: var(--primary-color);
+  background: #e67300; /* Naranja más oscuro basado en #ff8000 */
   color: white !important;
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
@@ -79,7 +100,7 @@
 }
 
 .login-btn:hover {
-  background: #1d4ed8;
+  background: #cc6600; /* Naranja aún más oscuro para hover */
   color: white !important;
 }
 

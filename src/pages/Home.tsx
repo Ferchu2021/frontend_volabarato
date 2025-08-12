@@ -53,13 +53,6 @@ const Home = () => {
       {/* Hero Section */}
       <section className="hero">
         <div className="hero-content">
-          <div className="hero-logo">
-            <img 
-              src="/images/logo.svg" 
-              alt="Volá Barato Logo" 
-              className="hero-logo-image"
-            />
-          </div>
           <h1>Volá Barato</h1>
           <p>
             Volá Barato es para quienes viajan con el cuerpo y también con la imaginación. 

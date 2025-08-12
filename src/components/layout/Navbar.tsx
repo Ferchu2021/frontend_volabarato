@@ -12,7 +12,7 @@ const Navbar = () => {
   const navigate = useNavigate()
 
   // Logo image - puedes cambiar esta URL por tu logo
-  const logoImage = '/images/logo.svg' // o '/images/logo.png' para PNG
+  const logoImage = '/images/logo-transparent.svg' // Logo transparente optimizado
 
   const handleLogout = async () => {
     await dispatch(logoutUser())
@@ -28,24 +28,7 @@ const Navbar = () => {
     <nav className="navbar">
       <div className="container">
         <Link to="/" className="navbar-brand">
-          <img 
-            src={logoImage} 
-            alt="Volá Barato Logo" 
-            className="brand-logo"
-            onError={(e) => {
-              // Fallback a texto si la imagen no carga
-              const target = e.target as HTMLImageElement
-              target.style.display = 'none'
-              const parent = target.parentElement
-              if (parent) {
-                const fallbackText = document.createElement('span')
-                fallbackText.className = 'brand-text'
-                fallbackText.textContent = 'Volá Barato'
-                parent.appendChild(fallbackText)
-              }
-            }}
-          />
-          <span className="brand-text fallback">Volá Barato</span>
+          {/* Logos removidos */}
         </Link>
 
         <div className={`navbar-menu ${isMenuOpen ? 'active' : ''}`}>
