@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react'
-import { FiUpload, FiX, FiImage, FiPlus } from 'react-icons/fi'
+import { FiUpload, FiPlus } from 'react-icons/fi'
 import ImageGallery from './ImageGallery'
 import './MultipleImageUpload.css'
 
