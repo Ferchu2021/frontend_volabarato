@@ -363,12 +363,12 @@ const Admin = () => {
           isOpen={showTravelModal}
           onClose={() => setShowTravelModal(false)}
           travel={selectedItem}
-          action={action}
+          action={action === 'delete' ? 'edit' : action}
           onSave={(travelData) => {
             if (action === 'create') {
               setTravels(prev => [...prev, { ...travelData, id: Date.now().toString() }])
             } else {
-              setTravels(prev => prev.map(t => t.id === travelData.id ? travelData : t))
+              setTravels(prev => prev.map(t => t.id === String(travelData.id) ? { ...travelData, id: String(travelData.id) } : t))
             }
             setShowTravelModal(false)
           }}
@@ -380,12 +380,23 @@ const Admin = () => {
           isOpen={showBookingModal}
           onClose={() => setShowBookingModal(false)}
           booking={selectedItem}
-          action={action}
+          action={action === 'delete' ? 'edit' : action}
           onSave={(bookingData) => {
             if (action === 'create') {
-              setBookings(prev => [...prev, { ...bookingData, id: Date.now().toString() }])
+              setBookings(prev => [
+                ...prev,
+                {
+                  ...bookingData,
+                  id: Date.now().toString(),
+                  createdAt: new Date().toISOString()
+                }
+              ])
             } else {
-              setBookings(prev => prev.map(b => b.id === bookingData.id ? bookingData : b))
+              setBookings(prev => prev.map(b => 
+                b.id === bookingData.id 
+                  ? { ...bookingData, id: String(bookingData.id), createdAt: b.createdAt } 
+                  : b
+              ))
             }
             setShowBookingModal(false)
           }}
@@ -397,12 +408,19 @@ const Admin = () => {
           isOpen={showSubscriberModal}
           onClose={() => setShowSubscriberModal(false)}
           subscriber={selectedItem}
-          action={action}
+          action={action === 'delete' ? 'edit' : action}
           onSave={(subscriberData) => {
             if (action === 'create') {
-              setSubscribers(prev => [...prev, { ...subscriberData, id: Date.now().toString() }])
+              setSubscribers(prev => [
+                ...prev,
+                { ...subscriberData, id: Date.now().toString(), subscribedAt: new Date().toISOString() }
+              ])
             } else {
-              setSubscribers(prev => prev.map(s => s.id === subscriberData.id ? subscriberData : s))
+              setSubscribers(prev => prev.map(s => 
+                s.id === subscriberData.id 
+                  ? { ...subscriberData, id: String(subscriberData.id), subscribedAt: s.subscribedAt } 
+                  : s
+              ))
             }
             setShowSubscriberModal(false)
           }}
