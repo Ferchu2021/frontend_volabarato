@@ -14,7 +14,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({
   images,
   onImageRemove,
   editable = false,
-  maxImages = 10,
+  //maxImages = 10,
   className = ''
 }) => {
   const [selectedImage, setSelectedImage] = useState<number | null>(null)
