@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { logoutUser } from '../store/slices/authSlice'
 import { 
@@ -9,7 +9,7 @@ import {
   Booking 
 } from '../store/slices/bookingSlice'
 import { useNavigate } from 'react-router-dom'
-import { FaSignOutAlt, FaPlus, FaEdit, FaTrash } from 'react-icons/fa'
+import { FaSignOutAlt, FaPlus, FaEdit, FaTrash, FaEye, FaCheck } from 'react-icons/fa'
 import TravelModal from '../components/admin/TravelModal'
 import BookingModal from '../components/admin/BookingModal'
 import SubscriberModal from '../components/admin/SubscriberModal'
@@ -27,19 +27,6 @@ interface Travel {
   category: string
 }
 
-interface MockBooking {
-  id: string
-  travelId: string
-  customerName: string
-  customerEmail: string
-  customerPhone: string
-  travelDate: string
-  passengers: number
-  totalPrice: number
-  status: 'pending' | 'confirmed' | 'cancelled'
-  createdAt: string
-}
-
 interface Subscriber {
   id: string
   firstName: string
@@ -54,7 +41,6 @@ const Admin = () => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { bookings, loading, error, stats } = useAppSelector(state => state.bookings)
-  const { user } = useAppSelector(state => state.auth)
   
   const [activeTab, setActiveTab] = useState<'travels' | 'bookings' | 'subscribers'>('bookings')
   const [showTravelModal, setShowTravelModal] = useState(false)
@@ -68,11 +54,6 @@ const Admin = () => {
     dispatch(fetchBookings())
     dispatch(fetchBookingStats())
   }, [dispatch])
-
-  const handleLogout = () => {
-    dispatch(logoutUser())
-    navigate('/login')
-  }
 
   const handleStatusChange = (bookingId: string, newStatus: Booking['estado']) => {
     dispatch(updateBookingStatus({ id: bookingId, status: newStatus }))
@@ -117,6 +98,11 @@ const Admin = () => {
     }
   }
 
+  const handleLogout = async () => {
+    await dispatch(logoutUser())
+    navigate('/')
+  }
+
   // Mock data para travels y subscribers (mantener por ahora)
   const [travels, setTravels] = useState<Travel[]>([
     {
@@ -141,21 +127,6 @@ const Admin = () => {
     }
   ])
 
-  const [bookings, setBookings] = useState<MockBooking[]>([
-    {
-      id: '1',
-      travelId: '1',
-      customerName: 'María González',
-      customerEmail: 'maria@email.com',
-      customerPhone: '+54 9 341 123-4567',
-      travelDate: '2024-03-15',
-      passengers: 2,
-      totalPrice: 30000,
-      status: 'confirmed',
-      createdAt: '2024-01-15'
-    }
-  ])
-
   const [subscribers, setSubscribers] = useState<Subscriber[]>([
     {
       id: '1',
@@ -167,11 +138,6 @@ const Admin = () => {
       subscribedAt: '2024-01-10'
     }
   ])
-
-  const handleLogout = async () => {
-    await dispatch(logoutUser())
-    navigate('/')
-  }
 
   const handleCreate = () => {
     setAction('create')
@@ -199,7 +165,10 @@ const Admin = () => {
     if (activeTab === 'travels') {
       setTravels(prev => prev.filter(t => t.id !== selectedItem.id))
     } else if (activeTab === 'bookings') {
-      setBookings(prev => prev.filter(b => b.id !== selectedItem.id))
+      // Para reservas reales, usar la acción de Redux
+      if (selectedItem._id) {
+        dispatch(deleteBooking(selectedItem._id))
+      }
     } else if (activeTab === 'subscribers') {
       setSubscribers(prev => prev.filter(s => s.id !== selectedItem.id))
     }
@@ -207,23 +176,6 @@ const Admin = () => {
     setSelectedItem(null)
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'confirmed': return 'success'
-      case 'pending': return 'warning'
-      case 'cancelled': return 'danger'
-      default: return 'default'
-    }
-  }
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'confirmed': return 'Confirmada'
-      case 'pending': return 'Pendiente'
-      case 'cancelled': return 'Cancelada'
-      default: return status
-    }
-  }
 
   return (
     <div className="admin-page">
@@ -486,23 +438,8 @@ const Admin = () => {
           onClose={() => setShowBookingModal(false)}
           booking={selectedItem}
           action={action === 'delete' ? 'edit' : action}
-          onSave={(bookingData) => {
-            if (action === 'create') {
-              setBookings(prev => [
-                ...prev,
-                {
-                  ...bookingData,
-                  id: Date.now().toString(),
-                  createdAt: new Date().toISOString()
-                }
-              ])
-            } else {
-              setBookings(prev => prev.map(b => 
-                b.id === bookingData.id 
-                  ? { ...bookingData, id: String(bookingData.id), createdAt: b.createdAt } 
-                  : b
-              ))
-            }
+          onSave={() => {
+            // Para reservas reales, las acciones se manejan a través de Redux
             setShowBookingModal(false)
           }}
         />
