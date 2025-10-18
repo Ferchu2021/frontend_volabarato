@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { useAppDispatch } from '../store/hooks'
+import { useState } from 'react'
+import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { logoutUser } from '../store/slices/authSlice'
 import { 
   fetchBookings, 
@@ -9,7 +9,7 @@ import {
   Booking 
 } from '../store/slices/bookingSlice'
 import { useNavigate } from 'react-router-dom'
-import { FaSignOutAlt, FaPlus, FaEdit, FaTrash, FaEye } from 'react-icons/fa'
+import { FaSignOutAlt, FaPlus, FaEdit, FaTrash } from 'react-icons/fa'
 import TravelModal from '../components/admin/TravelModal'
 import BookingModal from '../components/admin/BookingModal'
 import SubscriberModal from '../components/admin/SubscriberModal'
@@ -27,7 +27,7 @@ interface Travel {
   category: string
 }
 
-interface Booking {
+interface MockBooking {
   id: string
   travelId: string
   customerName: string
@@ -141,7 +141,7 @@ const Admin = () => {
     }
   ])
 
-  const [bookings, setBookings] = useState<Booking[]>([
+  const [bookings, setBookings] = useState<MockBooking[]>([
     {
       id: '1',
       travelId: '1',
