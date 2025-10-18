@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { RootState, AppDispatch } from '../../store/store'
+import { RootState, AppDispatch } from '../store/store'
 import { 
   fetchMisReservas, 
   updateBookingStatus, 
   deleteBooking,
   setFilters,
   clearFilters,
+  setPagination,
   Booking 
-} from '../../store/slices/bookingSlice'
+} from '../store/slices/bookingSlice'
 import { motion } from 'framer-motion'
 import { 
   FaCalendarAlt, 
@@ -17,20 +18,18 @@ import {
   FaCreditCard, 
   FaPhone, 
   FaEnvelope,
-  FaEdit,
-  FaTrash,
   FaTimes,
   FaCheck,
   FaEye,
   FaFilter,
-  FaTimesCircle
+  FaTimesCircle,
+  FaTrash
 } from 'react-icons/fa'
 import './MisReservas.css'
 
 const MisReservas: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>()
   const { bookings, loading, error, filters, pagination } = useSelector((state: RootState) => state.bookings)
-  const { user } = useSelector((state: RootState) => state.auth)
   
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
   const [showFilters, setShowFilters] = useState(false)
@@ -48,13 +47,13 @@ const MisReservas: React.FC = () => {
     }))
   }, [dispatch, filters.estado, pagination.page])
 
-  const handleStatusChange = (bookingId: string, newStatus: Booking['estado']) => {
-    setActionToConfirm({ type: 'cancel', booking: bookings.find(b => b._id === bookingId) || null })
+  const handleStatusChange = (bookingId: string, _newStatus: Booking['estado']) => {
+    setActionToConfirm({ type: 'cancel', booking: bookings.find((b: Booking) => b._id === bookingId) || null })
     setShowConfirmModal(true)
   }
 
   const handleDelete = (bookingId: string) => {
-    setActionToConfirm({ type: 'delete', booking: bookings.find(b => b._id === bookingId) || null })
+    setActionToConfirm({ type: 'delete', booking: bookings.find((b: Booking) => b._id === bookingId) || null })
     setShowConfirmModal(true)
   }
 
@@ -190,7 +189,7 @@ const MisReservas: React.FC = () => {
             <p>Cuando hagas una reserva, aparecerá aquí.</p>
           </div>
         ) : (
-          bookings.map((booking) => (
+          bookings.map((booking: Booking) => (
             <motion.div
               key={booking._id}
               className="reserva-card"
@@ -285,7 +284,7 @@ const MisReservas: React.FC = () => {
         <div className="pagination">
           <button 
             disabled={pagination.page === 1}
-            onClick={() => dispatch(setFilters({ page: pagination.page - 1 }))}
+            onClick={() => dispatch(setPagination({ page: pagination.page - 1 }))}
           >
             Anterior
           </button>
@@ -296,7 +295,7 @@ const MisReservas: React.FC = () => {
           
           <button 
             disabled={pagination.page === pagination.pages}
-            onClick={() => dispatch(setFilters({ page: pagination.page + 1 }))}
+            onClick={() => dispatch(setPagination({ page: pagination.page + 1 }))}
           >
             Siguiente
           </button>
