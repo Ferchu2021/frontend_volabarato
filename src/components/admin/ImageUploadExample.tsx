@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import ImageUpload from '../common/ImageUpload'
 import MultipleImageUpload from '../common/MultipleImageUpload'
 import ImageGallery from '../common/ImageGallery'
