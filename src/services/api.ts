@@ -64,6 +64,7 @@ export interface UpdateReservaRequest {
   precioTotal?: number;
   metodoPago?: 'efectivo' | 'tarjeta' | 'transferencia';
   observaciones?: string;
+  estado?: 'pendiente' | 'confirmada' | 'cancelada' | 'completada';
   datosContacto?: {
     nombre?: string;
     email?: string;

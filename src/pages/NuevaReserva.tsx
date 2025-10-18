@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { RootState, AppDispatch } from '../../store/store'
-import { createBooking } from '../../store/slices/bookingSlice'
-import { apiService, Paquete } from '../../services/api'
+import { RootState, AppDispatch } from '../store/store'
+import { createBooking } from '../store/slices/bookingSlice'
+import { apiService, Paquete } from '../services/api'
 import { motion } from 'framer-motion'
 import { 
   FaCalendarAlt, 
   FaUsers, 
-  FaDollarSign, 
   FaCreditCard, 
   FaPhone, 
   FaEnvelope,
@@ -35,7 +34,6 @@ interface FormData {
 const NuevaReserva: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>()
   const { loading, error } = useSelector((state: RootState) => state.bookings)
-  const { user } = useSelector((state: RootState) => state.auth)
   
   const [paquetes, setPaquetes] = useState<Paquete[]>([])
   const [selectedPaquete, setSelectedPaquete] = useState<Paquete | null>(null)

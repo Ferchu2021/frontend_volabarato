@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
-import { apiService, Reserva, CreateReservaRequest, UpdateReservaRequest, handleApiError } from '../../services/api'
+import { apiService, CreateReservaRequest, UpdateReservaRequest, handleApiError } from '../../services/api'
 
 // Interface compatible con el backend
 export interface Booking {
@@ -90,13 +90,13 @@ const initialState: BookingState = {
 // Async thunks
 export const fetchBookings = createAsyncThunk(
   'bookings/fetchBookings',
-  async (params?: {
+  async (params: {
     estado?: string
     usuario?: string
     paquete?: string
     limit?: number
     page?: number
-  }, { rejectWithValue }) => {
+  } = {}, { rejectWithValue }) => {
     try {
       const response = await apiService.getReservas(params)
       return response
@@ -108,11 +108,11 @@ export const fetchBookings = createAsyncThunk(
 
 export const fetchMisReservas = createAsyncThunk(
   'bookings/fetchMisReservas',
-  async (params?: {
+  async (params: {
     estado?: string
     limit?: number
     page?: number
-  }, { rejectWithValue }) => {
+  } = {}, { rejectWithValue }) => {
     try {
       const response = await apiService.getMisReservas(params)
       return response
@@ -191,10 +191,10 @@ export const deleteBooking = createAsyncThunk(
 
 export const fetchBookingStats = createAsyncThunk(
   'bookings/fetchBookingStats',
-  async (params?: {
+  async (params: {
     fechaInicio?: string
     fechaFin?: string
-  }, { rejectWithValue }) => {
+  } = {}, { rejectWithValue }) => {
     try {
       const stats = await apiService.getReservasStats(params)
       return stats
@@ -252,10 +252,10 @@ const bookingSlice = createSlice({
       })
       .addCase(fetchBookings.fulfilled, (state, action) => {
         state.loading = false
-        state.bookings = action.payload.reservas || action.payload.data || []
+        state.bookings = action.payload.data || []
         state.pagination = action.payload.pagination || initialState.pagination
         // Update stats after fetching
-        const bookings = action.payload.reservas || action.payload.data || []
+        const bookings = action.payload.data || []
         const totalBookings = bookings.length
         const pendingBookings = bookings.filter((b: Booking) => b.estado === 'pendiente').length
         const confirmedBookings = bookings.filter((b: Booking) => b.estado === 'confirmada').length
@@ -286,7 +286,7 @@ const bookingSlice = createSlice({
       })
       .addCase(fetchMisReservas.fulfilled, (state, action) => {
         state.loading = false
-        state.bookings = action.payload.reservas || action.payload.data || []
+        state.bookings = action.payload.data || []
         state.pagination = action.payload.pagination || initialState.pagination
       })
       .addCase(fetchMisReservas.rejected, (state, action) => {
