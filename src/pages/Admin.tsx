@@ -1,8 +1,15 @@
 import { useState, useEffect } from 'react'
-import { useAppDispatch } from '../store/hooks'
+import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { logoutUser } from '../store/slices/authSlice'
+import { 
+  fetchBookings, 
+  updateBookingStatus, 
+  deleteBooking,
+  fetchBookingStats,
+  Booking 
+} from '../store/slices/bookingSlice'
 import { useNavigate } from 'react-router-dom'
-import { FaSignOutAlt, FaPlus, FaEdit, FaTrash, FaEye } from 'react-icons/fa'
+import { FaSignOutAlt, FaPlus, FaEdit, FaTrash, FaEye, FaChartBar } from 'react-icons/fa'
 import TravelModal from '../components/admin/TravelModal'
 import BookingModal from '../components/admin/BookingModal'
 import SubscriberModal from '../components/admin/SubscriberModal'
@@ -44,18 +51,73 @@ interface Subscriber {
 }
 
 const Admin = () => {
-  const [activeTab, setActiveTab] = useState<'travels' | 'bookings' | 'subscribers'>('travels')
+  const dispatch = useAppDispatch()
+  const navigate = useNavigate()
+  const { bookings, loading, error, stats } = useAppSelector(state => state.bookings)
+  const { user } = useAppSelector(state => state.auth)
+  
+  const [activeTab, setActiveTab] = useState<'travels' | 'bookings' | 'subscribers'>('bookings')
   const [showTravelModal, setShowTravelModal] = useState(false)
   const [showBookingModal, setShowBookingModal] = useState(false)
   const [showSubscriberModal, setShowSubscriberModal] = useState(false)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [selectedItem, setSelectedItem] = useState<any>(null)
   const [action, setAction] = useState<'create' | 'edit' | 'delete'>('create')
-  
-  const dispatch = useAppDispatch()
-  const navigate = useNavigate()
 
-  // Mock data - en un entorno real esto vendría del backend
+  useEffect(() => {
+    dispatch(fetchBookings())
+    dispatch(fetchBookingStats())
+  }, [dispatch])
+
+  const handleLogout = () => {
+    dispatch(logoutUser())
+    navigate('/login')
+  }
+
+  const handleStatusChange = (bookingId: string, newStatus: Booking['estado']) => {
+    dispatch(updateBookingStatus({ id: bookingId, status: newStatus }))
+  }
+
+  const handleDeleteBooking = (bookingId: string) => {
+    dispatch(deleteBooking(bookingId))
+  }
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS'
+    }).format(amount)
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  }
+
+  const getStatusColor = (status: Booking['estado']) => {
+    switch (status) {
+      case 'pendiente': return '#f59e0b'
+      case 'confirmada': return '#10b981'
+      case 'cancelada': return '#ef4444'
+      case 'completada': return '#6366f1'
+      default: return '#6b7280'
+    }
+  }
+
+  const getStatusText = (status: Booking['estado']) => {
+    switch (status) {
+      case 'pendiente': return 'Pendiente'
+      case 'confirmada': return 'Confirmada'
+      case 'cancelada': return 'Cancelada'
+      case 'completada': return 'Completada'
+      default: return status
+    }
+  }
+
+  // Mock data para travels y subscribers (mantener por ahora)
   const [travels, setTravels] = useState<Travel[]>([
     {
       id: '1',
@@ -179,16 +241,16 @@ const Admin = () => {
             <div className="stat-label">Viajes Activos</div>
           </div>
           <div className="stat-card">
-            <div className="stat-number">{bookings.length}</div>
+            <div className="stat-number">{stats.totalBookings}</div>
             <div className="stat-label">Reservas Totales</div>
           </div>
           <div className="stat-card">
-            <div className="stat-number">{subscribers.length}</div>
-            <div className="stat-label">Suscriptores</div>
+            <div className="stat-number">{stats.pendingBookings}</div>
+            <div className="stat-label">Reservas Pendientes</div>
           </div>
           <div className="stat-card">
             <div className="stat-number">
-              ${bookings.reduce((sum, b) => sum + b.totalPrice, 0).toLocaleString()}
+              {formatCurrency(stats.totalRevenue)}
             </div>
             <div className="stat-label">Ingresos Totales</div>
           </div>
@@ -225,6 +287,12 @@ const Admin = () => {
             Cerrar Sesión
           </button>
         </div>
+
+        {error && (
+          <div className="error-message">
+            <p>{error}</p>
+          </div>
+        )}
 
         <div className="admin-content">
           {activeTab === 'travels' && (
@@ -285,31 +353,68 @@ const Admin = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {bookings.map(booking => (
-                    <tr key={booking.id}>
-                      <td>{booking.customerName}</td>
-                      <td>{booking.customerEmail}</td>
-                      <td>{booking.customerPhone}</td>
-                      <td>{new Date(booking.travelDate).toLocaleDateString('es-AR')}</td>
-                      <td>{booking.passengers}</td>
-                      <td>${booking.totalPrice.toLocaleString()}</td>
-                      <td>
-                        <span className={`status-badge ${getStatusColor(booking.status)}`}>
-                          {getStatusText(booking.status)}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="action-buttons">
-                          <button className="btn-icon" onClick={() => handleEdit(booking)}>
-                            <FaEdit />
-                          </button>
-                          <button className="btn-icon danger" onClick={() => handleDelete(booking)}>
-                            <FaTrash />
-                          </button>
-                        </div>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={8} style={{ textAlign: 'center', padding: '2rem' }}>
+                        <div className="spinner"></div>
+                        <p>Cargando reservas...</p>
                       </td>
                     </tr>
-                  ))}
+                  ) : bookings.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} style={{ textAlign: 'center', padding: '2rem' }}>
+                        <p>No hay reservas disponibles</p>
+                      </td>
+                    </tr>
+                  ) : (
+                    bookings.map(booking => (
+                      <tr key={booking._id}>
+                        <td>{booking.datosContacto.nombre}</td>
+                        <td>{booking.datosContacto.email}</td>
+                        <td>{booking.datosContacto.telefono}</td>
+                        <td>{formatDate(booking.fechaViaje)}</td>
+                        <td>{booking.cantidadPersonas}</td>
+                        <td>{formatCurrency(booking.precioTotal)}</td>
+                        <td>
+                          <span 
+                            className="status-badge" 
+                            style={{ backgroundColor: getStatusColor(booking.estado) }}
+                          >
+                            {getStatusText(booking.estado)}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="action-buttons">
+                            <button 
+                              className="btn-icon" 
+                              onClick={() => setSelectedItem(booking)}
+                              title="Ver detalles"
+                            >
+                              <FaEye />
+                            </button>
+                            {booking.estado === 'pendiente' && (
+                              <button 
+                                className="btn-icon success" 
+                                onClick={() => handleStatusChange(booking._id, 'confirmada')}
+                                title="Confirmar reserva"
+                              >
+                                <FaCheck />
+                              </button>
+                            )}
+                            {booking.estado !== 'completada' && (
+                              <button 
+                                className="btn-icon danger" 
+                                onClick={() => handleDeleteBooking(booking._id)}
+                                title="Eliminar reserva"
+                              >
+                                <FaTrash />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

@@ -1,18 +1,30 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
+import { apiService, Reserva, CreateReservaRequest, UpdateReservaRequest, handleApiError } from '../../services/api'
 
+// Interface compatible con el backend
 export interface Booking {
-  id: string
-  travelId: string
-  travelTitle: string
-  customerName: string
-  customerEmail: string
-  customerPhone: string
-  numberOfTravelers: number
-  totalPrice: number
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
-  specialRequests?: string
-  createdAt: string
-  updatedAt: string
+  _id: string
+  usuario: string
+  paquete: {
+    _id: string
+    nombre: string
+    destino: string
+    precio: number
+  }
+  fechaReserva: string
+  fechaViaje: string
+  cantidadPersonas: number
+  precioTotal: number
+  estado: 'pendiente' | 'confirmada' | 'cancelada' | 'completada'
+  metodoPago: 'efectivo' | 'tarjeta' | 'transferencia'
+  observaciones?: string
+  datosContacto: {
+    nombre: string
+    email: string
+    telefono: string
+  }
+  fechaCreacion: string
+  fechaActualizacion: string
 }
 
 interface BookingState {
@@ -21,9 +33,9 @@ interface BookingState {
   error: string | null
   selectedBooking: Booking | null
   filters: {
-    status: string
-    customerName: string
-    travelTitle: string
+    estado: string
+    usuario: string
+    paquete: string
     dateRange: {
       start: string
       end: string
@@ -37,6 +49,12 @@ interface BookingState {
     completedBookings: number
     totalRevenue: number
   }
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    pages: number
+  }
 }
 
 const initialState: BookingState = {
@@ -45,9 +63,9 @@ const initialState: BookingState = {
   error: null,
   selectedBooking: null,
   filters: {
-    status: '',
-    customerName: '',
-    travelTitle: '',
+    estado: '',
+    usuario: '',
+    paquete: '',
     dateRange: {
       start: '',
       end: '',
@@ -61,115 +79,128 @@ const initialState: BookingState = {
     completedBookings: 0,
     totalRevenue: 0,
   },
+  pagination: {
+    page: 1,
+    limit: 10,
+    total: 0,
+    pages: 0,
+  },
 }
 
 // Async thunks
 export const fetchBookings = createAsyncThunk(
   'bookings/fetchBookings',
-  async () => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 700))
-    
-    // Get from localStorage or return mock data
-    const stored = localStorage.getItem('bookings')
-    if (stored) {
-      return JSON.parse(stored)
+  async (params?: {
+    estado?: string
+    usuario?: string
+    paquete?: string
+    limit?: number
+    page?: number
+  }, { rejectWithValue }) => {
+    try {
+      const response = await apiService.getReservas(params)
+      return response
+    } catch (error) {
+      return rejectWithValue(handleApiError(error))
     }
-    
-    // Return mock data for demo
-    return [
-      {
-        id: '1',
-        travelId: '1',
-        travelTitle: 'Aventura en Bariloche',
-        customerName: 'Carlos López',
-        customerEmail: 'carlos@email.com',
-        customerPhone: '+54 9 11 1234-5678',
-        numberOfTravelers: 2,
-        totalPrice: 90000,
-        status: 'confirmed' as const,
-        specialRequests: 'Habitación con vista al lago',
-        createdAt: '2024-01-10T10:00:00Z',
-        updatedAt: '2024-01-12T15:30:00Z'
-      },
-      {
-        id: '2',
-        travelId: '2',
-        travelTitle: 'Playa en Cancún',
-        customerName: 'Ana Martínez',
-        customerEmail: 'ana@email.com',
-        customerPhone: '+54 9 11 9876-5432',
-        numberOfTravelers: 3,
-        totalPrice: 195000,
-        status: 'pending' as const,
-        createdAt: '2024-01-13T14:20:00Z',
-        updatedAt: '2024-01-13T14:20:00Z'
-      }
-    ]
+  }
+)
+
+export const fetchMisReservas = createAsyncThunk(
+  'bookings/fetchMisReservas',
+  async (params?: {
+    estado?: string
+    limit?: number
+    page?: number
+  }, { rejectWithValue }) => {
+    try {
+      const response = await apiService.getMisReservas(params)
+      return response
+    } catch (error) {
+      return rejectWithValue(handleApiError(error))
+    }
+  }
+)
+
+export const fetchBookingById = createAsyncThunk(
+  'bookings/fetchBookingById',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const booking = await apiService.getReservaById(id)
+      return booking
+    } catch (error) {
+      return rejectWithValue(handleApiError(error))
+    }
   }
 )
 
 export const createBooking = createAsyncThunk(
   'bookings/createBooking',
-  async (bookingData: Omit<Booking, 'id' | 'createdAt' | 'updatedAt'>) => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    const newBooking: Booking = {
-      ...bookingData,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+  async (bookingData: CreateReservaRequest, { rejectWithValue }) => {
+    try {
+      const response = await apiService.createReserva(bookingData)
+      return response.reserva
+    } catch (error) {
+      return rejectWithValue(handleApiError(error))
     }
-    
-    // Save to localStorage
-    const stored = localStorage.getItem('bookings')
-    const bookings = stored ? JSON.parse(stored) : []
-    bookings.push(newBooking)
-    localStorage.setItem('bookings', JSON.stringify(bookings))
-    
-    return newBooking
+  }
+)
+
+export const updateBooking = createAsyncThunk(
+  'bookings/updateBooking',
+  async ({ id, data }: { id: string; data: UpdateReservaRequest }, { rejectWithValue }) => {
+    try {
+      const response = await apiService.updateReserva(id, data)
+      return response.reserva
+    } catch (error) {
+      return rejectWithValue(handleApiError(error))
+    }
   }
 )
 
 export const updateBookingStatus = createAsyncThunk(
   'bookings/updateBookingStatus',
-  async ({ id, status }: { id: string; status: Booking['status'] }) => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 800))
-    
-    // Update in localStorage
-    const stored = localStorage.getItem('bookings')
-    const bookings = stored ? JSON.parse(stored) : []
-    const index = bookings.findIndex((b: Booking) => b.id === id)
-    
-    if (index !== -1) {
-      bookings[index] = {
-        ...bookings[index],
-        status,
-        updatedAt: new Date().toISOString()
+  async ({ id, status }: { id: string; status: Booking['estado'] }, { rejectWithValue }) => {
+    try {
+      let response
+      if (status === 'cancelada') {
+        response = await apiService.cancelarReserva(id)
+      } else if (status === 'confirmada') {
+        response = await apiService.confirmarReserva(id)
+      } else {
+        response = await apiService.updateReserva(id, { estado: status })
       }
-      localStorage.setItem('bookings', JSON.stringify(bookings))
-      return bookings[index]
+      return response.reserva
+    } catch (error) {
+      return rejectWithValue(handleApiError(error))
     }
-    
-    throw new Error('Booking not found')
   }
 )
 
 export const deleteBooking = createAsyncThunk(
   'bookings/deleteBooking',
-  async (id: string) => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 700))
-    
-    // Remove from localStorage
-    const stored = localStorage.getItem('bookings')
-    const bookings = stored ? JSON.parse(stored) : []
-    const filtered = bookings.filter((b: Booking) => b.id !== id)
-    localStorage.setItem('bookings', JSON.stringify(filtered))
-    
-    return id
+  async (id: string, { rejectWithValue }) => {
+    try {
+      await apiService.deleteReserva(id)
+      return id
+    } catch (error) {
+      return rejectWithValue(handleApiError(error))
+    }
+  }
+)
+
+export const fetchBookingStats = createAsyncThunk(
+  'bookings/fetchBookingStats',
+  async (params?: {
+    fechaInicio?: string
+    fechaFin?: string
+  }, { rejectWithValue }) => {
+    try {
+      const stats = await apiService.getReservasStats(params)
+      return stats
+    } catch (error) {
+      return rejectWithValue(handleApiError(error))
+    }
   }
 )
 
@@ -189,15 +220,18 @@ const bookingSlice = createSlice({
     clearError: (state) => {
       state.error = null
     },
+    setPagination: (state, action: PayloadAction<Partial<BookingState['pagination']>>) => {
+      state.pagination = { ...state.pagination, ...action.payload }
+    },
     updateStats: (state) => {
       const totalBookings = state.bookings.length
-      const pendingBookings = state.bookings.filter(b => b.status === 'pending').length
-      const confirmedBookings = state.bookings.filter(b => b.status === 'confirmed').length
-      const cancelledBookings = state.bookings.filter(b => b.status === 'cancelled').length
-      const completedBookings = state.bookings.filter(b => b.status === 'completed').length
+      const pendingBookings = state.bookings.filter(b => b.estado === 'pendiente').length
+      const confirmedBookings = state.bookings.filter(b => b.estado === 'confirmada').length
+      const cancelledBookings = state.bookings.filter(b => b.estado === 'cancelada').length
+      const completedBookings = state.bookings.filter(b => b.estado === 'completada').length
       const totalRevenue = state.bookings
-        .filter(b => b.status === 'confirmed' || b.status === 'completed')
-        .reduce((sum, b) => sum + b.totalPrice, 0)
+        .filter(b => b.estado === 'confirmada' || b.estado === 'completada')
+        .reduce((sum, b) => sum + b.precioTotal, 0)
 
       state.stats = {
         totalBookings,
@@ -218,16 +252,18 @@ const bookingSlice = createSlice({
       })
       .addCase(fetchBookings.fulfilled, (state, action) => {
         state.loading = false
-        state.bookings = action.payload
+        state.bookings = action.payload.reservas || action.payload.data || []
+        state.pagination = action.payload.pagination || initialState.pagination
         // Update stats after fetching
-        const totalBookings = action.payload.length
-        const pendingBookings = action.payload.filter((b: Booking) => b.status === 'pending').length
-        const confirmedBookings = action.payload.filter((b: Booking) => b.status === 'confirmed').length
-        const cancelledBookings = action.payload.filter((b: Booking) => b.status === 'cancelled').length
-        const completedBookings = action.payload.filter((b: Booking) => b.status === 'completed').length
-        const totalRevenue = action.payload
-          .filter((b: Booking) => b.status === 'confirmed' || b.status === 'completed')
-          .reduce((sum: number, b: Booking) => sum + b.totalPrice, 0)
+        const bookings = action.payload.reservas || action.payload.data || []
+        const totalBookings = bookings.length
+        const pendingBookings = bookings.filter((b: Booking) => b.estado === 'pendiente').length
+        const confirmedBookings = bookings.filter((b: Booking) => b.estado === 'confirmada').length
+        const cancelledBookings = bookings.filter((b: Booking) => b.estado === 'cancelada').length
+        const completedBookings = bookings.filter((b: Booking) => b.estado === 'completada').length
+        const totalRevenue = bookings
+          .filter((b: Booking) => b.estado === 'confirmada' || b.estado === 'completada')
+          .reduce((sum: number, b: Booking) => sum + b.precioTotal, 0)
 
         state.stats = {
           totalBookings,
@@ -240,7 +276,36 @@ const bookingSlice = createSlice({
       })
       .addCase(fetchBookings.rejected, (state, action) => {
         state.loading = false
-        state.error = action.error.message || 'Failed to fetch bookings'
+        state.error = action.payload as string || 'Failed to fetch bookings'
+      })
+      
+      // Fetch mis reservas
+      .addCase(fetchMisReservas.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(fetchMisReservas.fulfilled, (state, action) => {
+        state.loading = false
+        state.bookings = action.payload.reservas || action.payload.data || []
+        state.pagination = action.payload.pagination || initialState.pagination
+      })
+      .addCase(fetchMisReservas.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string || 'Failed to fetch my reservations'
+      })
+      
+      // Fetch booking by ID
+      .addCase(fetchBookingById.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(fetchBookingById.fulfilled, (state, action) => {
+        state.loading = false
+        state.selectedBooking = action.payload
+      })
+      .addCase(fetchBookingById.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string || 'Failed to fetch booking'
       })
       // Create booking
       .addCase(createBooking.pending, (state) => {
@@ -256,8 +321,26 @@ const bookingSlice = createSlice({
       })
       .addCase(createBooking.rejected, (state, action) => {
         state.loading = false
-        state.error = action.error.message || 'Failed to create booking'
+        state.error = action.payload as string || 'Failed to create booking'
       })
+      
+      // Update booking
+      .addCase(updateBooking.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(updateBooking.fulfilled, (state, action) => {
+        state.loading = false
+        const index = state.bookings.findIndex(booking => booking._id === action.payload._id)
+        if (index !== -1) {
+          state.bookings[index] = action.payload
+        }
+      })
+      .addCase(updateBooking.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string || 'Failed to update booking'
+      })
+      
       // Update booking status
       .addCase(updateBookingStatus.pending, (state) => {
         state.loading = true
@@ -265,43 +348,44 @@ const bookingSlice = createSlice({
       })
       .addCase(updateBookingStatus.fulfilled, (state, action) => {
         state.loading = false
-        const index = state.bookings.findIndex(booking => booking.id === action.payload.id)
+        const index = state.bookings.findIndex(booking => booking._id === action.payload._id)
         if (index !== -1) {
-          const oldStatus = state.bookings[index].status
-          const newStatus = action.payload.status
+          const oldStatus = state.bookings[index].estado
+          const newStatus = action.payload.estado
           
           // Update the booking
           state.bookings[index] = action.payload
           
           // Update stats
-          if (oldStatus === 'pending' && newStatus !== 'pending') {
+          if (oldStatus === 'pendiente' && newStatus !== 'pendiente') {
             state.stats.pendingBookings -= 1
           }
-          if (oldStatus === 'confirmed' && newStatus !== 'confirmed') {
+          if (oldStatus === 'confirmada' && newStatus !== 'confirmada') {
             state.stats.confirmedBookings -= 1
           }
-          if (oldStatus === 'cancelled' && newStatus !== 'cancelled') {
+          if (oldStatus === 'cancelada' && newStatus !== 'cancelada') {
             state.stats.cancelledBookings -= 1
           }
-          if (oldStatus === 'completed' && newStatus !== 'completed') {
+          if (oldStatus === 'completada' && newStatus !== 'completada') {
             state.stats.completedBookings -= 1
           }
           
-          if (newStatus === 'pending') state.stats.pendingBookings += 1
-          if (newStatus === 'confirmed') state.stats.confirmedBookings += 1
-          if (newStatus === 'cancelled') state.stats.cancelledBookings += 1
-          if (newStatus === 'completed') state.stats.completedBookings += 1
+          if (newStatus === 'pendiente') state.stats.pendingBookings += 1
+          if (newStatus === 'confirmada') state.stats.confirmedBookings += 1
+          if (newStatus === 'cancelada') state.stats.cancelledBookings += 1
+          if (newStatus === 'completada') state.stats.completedBookings += 1
           
           // Recalculate revenue
           state.stats.totalRevenue = state.bookings
-            .filter(b => b.status === 'confirmed' || b.status === 'completed')
-            .reduce((sum, b) => sum + b.totalPrice, 0)
+            .filter(b => b.estado === 'confirmada' || b.estado === 'completada')
+            .reduce((sum, b) => sum + b.precioTotal, 0)
         }
       })
       .addCase(updateBookingStatus.rejected, (state, action) => {
         state.loading = false
-        state.error = action.error.message || 'Failed to update booking status'
+        state.error = action.payload as string || 'Failed to update booking status'
       })
+      
       // Delete booking
       .addCase(deleteBooking.pending, (state) => {
         state.loading = true
@@ -309,25 +393,47 @@ const bookingSlice = createSlice({
       })
       .addCase(deleteBooking.fulfilled, (state, action) => {
         state.loading = false
-        const deletedBooking = state.bookings.find(b => b.id === action.payload)
+        const deletedBooking = state.bookings.find(b => b._id === action.payload)
         if (deletedBooking) {
           // Update stats
           state.stats.totalBookings -= 1
-          if (deletedBooking.status === 'pending') state.stats.pendingBookings -= 1
-          if (deletedBooking.status === 'confirmed') state.stats.confirmedBookings -= 1
-          if (deletedBooking.status === 'cancelled') state.stats.cancelledBookings -= 1
-          if (deletedBooking.status === 'completed') state.stats.completedBookings -= 1
+          if (deletedBooking.estado === 'pendiente') state.stats.pendingBookings -= 1
+          if (deletedBooking.estado === 'confirmada') state.stats.confirmedBookings -= 1
+          if (deletedBooking.estado === 'cancelada') state.stats.cancelledBookings -= 1
+          if (deletedBooking.estado === 'completada') state.stats.completedBookings -= 1
           
           // Recalculate revenue
           state.stats.totalRevenue = state.bookings
-            .filter(b => b.id !== action.payload && (b.status === 'confirmed' || b.status === 'completed'))
-            .reduce((sum, b) => sum + b.totalPrice, 0)
+            .filter(b => b._id !== action.payload && (b.estado === 'confirmada' || b.estado === 'completada'))
+            .reduce((sum, b) => sum + b.precioTotal, 0)
         }
-        state.bookings = state.bookings.filter(booking => booking.id !== action.payload)
+        state.bookings = state.bookings.filter(booking => booking._id !== action.payload)
       })
       .addCase(deleteBooking.rejected, (state, action) => {
         state.loading = false
-        state.error = action.error.message || 'Failed to delete booking'
+        state.error = action.payload as string || 'Failed to delete booking'
+      })
+      
+      // Fetch booking stats
+      .addCase(fetchBookingStats.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(fetchBookingStats.fulfilled, (state, action) => {
+        state.loading = false
+        const stats = action.payload
+        state.stats = {
+          totalBookings: stats.totalReservas,
+          pendingBookings: stats.estadisticas.find(s => s._id === 'pendiente')?.count || 0,
+          confirmedBookings: stats.estadisticas.find(s => s._id === 'confirmada')?.count || 0,
+          cancelledBookings: stats.estadisticas.find(s => s._id === 'cancelada')?.count || 0,
+          completedBookings: stats.estadisticas.find(s => s._id === 'completada')?.count || 0,
+          totalRevenue: stats.totalIngresos,
+        }
+      })
+      .addCase(fetchBookingStats.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string || 'Failed to fetch booking stats'
       })
   },
 })
@@ -337,6 +443,7 @@ export const {
   setFilters, 
   clearFilters, 
   clearError, 
+  setPagination,
   updateStats 
 } = bookingSlice.actions
 export default bookingSlice.reducer

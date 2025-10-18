@@ -7,7 +7,7 @@ import { FaEye, FaEyeSlash, FaSignInAlt } from 'react-icons/fa'
 import './Login.css'
 
 interface LoginFormData {
-  email: string
+  usuario: string
   password: string
 }
 
@@ -73,24 +73,24 @@ const Login = () => {
             )}
 
             <div className="form-group">
-              <label htmlFor="email" className="form-label">
-                Email
+              <label htmlFor="usuario" className="form-label">
+                Usuario
               </label>
               <input
-                id="email"
-                type="email"
-                className={`form-input ${errors.email ? 'error' : ''}`}
-                placeholder="tu@email.com"
-                {...register('email', {
-                  required: 'El email es requerido',
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: 'Ingresa un email válido'
+                id="usuario"
+                type="text"
+                className={`form-input ${errors.usuario ? 'error' : ''}`}
+                placeholder="tu_usuario"
+                {...register('usuario', {
+                  required: 'El usuario es requerido',
+                  minLength: {
+                    value: 4,
+                    message: 'El usuario debe tener al menos 4 caracteres'
                   }
                 })}
               />
-              {errors.email && (
-                <span className="error-message">{errors.email.message}</span>
+              {errors.usuario && (
+                <span className="error-message">{errors.usuario.message}</span>
               )}
             </div>
 

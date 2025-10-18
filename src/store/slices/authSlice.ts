@@ -1,10 +1,9 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
+import { apiService, LoginRequest, LoginResponse, handleApiError } from '../../services/api'
 
 interface User {
-  id: string
-  email: string
-  name: string
-  role: 'admin' | 'user'
+  _id: string
+  usuario: string
 }
 
 interface AuthState {
@@ -21,28 +20,23 @@ const initialState: AuthState = {
   error: null,
 }
 
-// Mock admin user for demo purposes
-const MOCK_ADMIN = {
-  id: '1',
-  email: 'admin@volabarato.com',
-  name: 'Administrador',
-  role: 'admin' as const
-}
-
 export const loginUser = createAsyncThunk(
   'auth/login',
-  async ({ email, password }: { email: string; password: string }) => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Simple authentication logic
-    if (email === 'admin@volabarato.com' && password === 'admin123') {
-      const user = MOCK_ADMIN
-      // Save to localStorage
-      localStorage.setItem('user', JSON.stringify(user))
+  async (credentials: LoginRequest, { rejectWithValue }) => {
+    try {
+      const response = await apiService.login(credentials)
+      
+      // Decodificar el token para obtener información del usuario
+      const tokenPayload = JSON.parse(atob(response.token.split('.')[1]))
+      
+      const user: User = {
+        _id: tokenPayload._id,
+        usuario: tokenPayload.usuario
+      }
+      
       return user
-    } else {
-      throw new Error('Credenciales inválidas')
+    } catch (error) {
+      return rejectWithValue(handleApiError(error))
     }
   }
 )
@@ -50,23 +44,33 @@ export const loginUser = createAsyncThunk(
 export const logoutUser = createAsyncThunk(
   'auth/logout',
   async () => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500))
-    // Remove from localStorage
-    localStorage.removeItem('user')
+    await apiService.logout()
   }
 )
 
 export const checkAuthStatus = createAsyncThunk(
   'auth/checkStatus',
   async () => {
-    // Check localStorage for existing user
-    const userStr = localStorage.getItem('user')
-    if (userStr) {
+    const token = localStorage.getItem('token')
+    if (token) {
       try {
-        return JSON.parse(userStr) as User
-      } catch {
-        localStorage.removeItem('user')
+        // Decodificar el token para obtener información del usuario
+        const tokenPayload = JSON.parse(atob(token.split('.')[1]))
+        
+        // Verificar si el token no ha expirado
+        if (tokenPayload.exp && tokenPayload.exp < Date.now() / 1000) {
+          localStorage.removeItem('token')
+          return null
+        }
+        
+        const user: User = {
+          _id: tokenPayload._id,
+          usuario: tokenPayload.usuario
+        }
+        
+        return user
+      } catch (error) {
+        localStorage.removeItem('token')
         return null
       }
     }
