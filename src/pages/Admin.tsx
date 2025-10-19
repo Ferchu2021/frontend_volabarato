@@ -51,8 +51,8 @@ const Admin = () => {
   const [action, setAction] = useState<'create' | 'edit' | 'delete'>('create')
 
   useEffect(() => {
-    dispatch(fetchBookings())
-    dispatch(fetchBookingStats())
+    dispatch(fetchBookings({}))
+    dispatch(fetchBookingStats({}))
   }, [dispatch])
 
   const handleStatusChange = (bookingId: string, newStatus: Booking['estado']) => {
