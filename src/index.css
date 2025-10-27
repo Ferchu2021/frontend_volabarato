@@ -1,11 +1,11 @@
 :root {
   --primary-color: #2563eb;
   --secondary-color: #f59e0b;
-  --accent-color: #10b981;
-  --text-primary: #1f2937;
-  --text-secondary: #6b7280;
-  --background-primary: #ffffff;
-  --background-secondary: #f9fafb;
+  --accent-color: #2563eb;
+  --text-primary: #000000;  /* Cambiado a negro */
+  --text-secondary: #000000;  /* Cambiado a negro */
+  --background-primary: #ffffff;  /* Asegurando fondo blanco */
+  --background-secondary: #ffffff;  /* Cambiado a blanco */
   --border-color: #e5e7eb;
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
@@ -29,6 +29,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: var(--text-primary);
+  background-color: var(--background-primary);
   line-height: 1.6;
 }
 
