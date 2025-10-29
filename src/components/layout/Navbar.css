@@ -1,5 +1,5 @@
 .navbar {
-  background: #F7680C;
+  background: #346dee;
   padding: 0.25rem 0;
   position: fixed;
   top: 0;
@@ -92,7 +92,7 @@
 }
 
 .login-btn {
-  background: #e67300; /* Naranja más oscuro basado en #ff8000 */
+  background: #346dee; /* Naranja más oscuro basado en #ff8000 */
   color: white !important;
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
@@ -100,7 +100,7 @@
 }
 
 .login-btn:hover {
-  background: #cc6600; /* Naranja aún más oscuro para hover */
+  background: #779ef4; /* Naranja aún más oscuro para hover */
   color: white !important;
 }
 
@@ -119,7 +119,7 @@
 }
 
 .logout-btn:hover {
-  color: #dc2626;
+  color: #346dee;
 }
 
 .navbar-toggle {
