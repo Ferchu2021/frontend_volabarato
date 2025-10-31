@@ -9,23 +9,23 @@ const Home = () => {
 
   const carouselImages = [
     {
-      src: '/images/travel-1.jpg',
-      alt: 'Destino turístico paradisíaco',
+      src: '/images/mikonos.png',
+      alt: 'Descubrí Destinos Únicos',
       title: 'Descubrí Destinos Únicos'
     },
     {
-      src: '/images/travel-2.jpg',
-      alt: 'Experiencia de viaje inolvidable',
+      src: '/images/safari.png',
+      alt: 'Viví Experiencias Inolvidables',
       title: 'Viví Experiencias Inolvidables'
     },
     {
-      src: '/images/travel-3.jpg',
-      alt: 'Aventura y exploración',
+      src: '/images/Honolulu.png',
+      alt: 'Aventuras que Inspiran',
       title: 'Aventuras que Inspiran'
     },
     {
-      src: '/images/travel-4.jpg',
-      alt: 'Cultura y tradiciones',
+      src: '/images/egipto.png',
+      alt: 'Sumergite en Nuevas Culturas',
       title: 'Sumergite en Nuevas Culturas'
     }
   ]
