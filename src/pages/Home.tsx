@@ -162,7 +162,7 @@ const Home = () => {
           <div className="proposals-grid">
             <div className="proposal-card">
               <div className="proposal-image">
-                <img src="/images/helado-rosario.jpg" alt="La Ruta del Helado en Rosario" />
+                <img src="/images/helado.png" alt="La Ruta del Helado en Rosario" />
               </div>
               <div className="proposal-content">
                 <h3>La Ruta del Helado en Rosario</h3>
@@ -172,7 +172,7 @@ const Home = () => {
             </div>
             <div className="proposal-card">
               <div className="proposal-image">
-                <img src="/images/solos-solas.jpg" alt="Solos y Solas" />
+                <img src="/images/solos y solas.png" alt="Solos y Solas" />
               </div>
               <div className="proposal-content">
                 <h3>Solos y Solas</h3>
@@ -182,7 +182,7 @@ const Home = () => {
             </div>
             <div className="proposal-card">
               <div className="proposal-image">
-                <img src="/images/team-building.jpg" alt="Team Building" />
+                <img src="/images/team.png" alt="Team Building" />
               </div>
               <div className="proposal-content">
                 <h3>Team Building</h3>
@@ -192,7 +192,7 @@ const Home = () => {
             </div>
             <div className="proposal-card">
               <div className="proposal-image">
-                <img src="/images/rosario-futbol.jpg" alt="Conocé Rosario, la ciudad del fútbol" />
+                <img src="/images/messi.png" alt="Conocé Rosario, la ciudad del fútbol" />
               </div>
               <div className="proposal-content">
                 <h3>Conocé Rosario, la ciudad del fútbol</h3>
