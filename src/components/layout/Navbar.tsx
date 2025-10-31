@@ -25,7 +25,12 @@ const Navbar = () => {
     <nav className="navbar">
       <div className="container">
         <Link to="/" className="navbar-brand">
-          <span className="brand-text">Volá Barato</span>
+          <img
+            src="/images/logo1.jpeg"
+            alt="Volá Barato"
+            className="navbar-logo"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+          />
         </Link>
 
         <div className={`navbar-menu ${isMenuOpen ? 'active' : ''}`}>
