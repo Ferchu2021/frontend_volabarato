@@ -6,7 +6,9 @@
 
 /* Hero Section */
 .hero {
-  background: #618ef2;
+  background: url('/images/Fondo1.png') center/cover no-repeat;
+  background-size: cover;
+  background-position: center;
   color: white;
   padding: 6rem 0;
   text-align: center;
@@ -21,8 +23,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: url('/images/hero-bg.jpg') center/cover;
-  opacity: 0.1;
+  background: rgba(0, 0, 0, 0.3); /* Overlay oscuro para mejorar legibilidad del texto */
   z-index: 1;
 }
 
