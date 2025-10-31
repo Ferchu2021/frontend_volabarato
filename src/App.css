@@ -92,7 +92,27 @@
 
 /* Features Section */
 .features {
-  background: var(--background-secondary);
+  background-image: url('/images/nieve.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+.features::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.7);
+  z-index: 1;
+}
+
+.features .container {
+  position: relative;
+  z-index: 2;
 }
 
 .features-grid {
