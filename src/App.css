@@ -121,12 +121,7 @@
 }
 
 /* Newsletter Section */
-.newsletter {
-  background: linear-gradient(135deg, var(--secondary-color) 0%, var(--accent-color) 100%);
-  color: white;
-  text-align: center;
-  padding: 4rem 0;
-}
+/* Background moved to Home.css to allow image background */
 
 .newsletter-form {
   max-width: 500px;

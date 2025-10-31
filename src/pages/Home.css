@@ -168,10 +168,30 @@
 
 /* Newsletter Section */
 .newsletter {
-  background: linear-gradient(135deg, var(--secondary-color) 0%, var(--accent-color) 100%);
+  background-image: url('/images/bosque.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
   color: white;
   text-align: center;
   padding: 4rem 0;
+}
+
+.newsletter::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1;
+}
+
+.newsletter .container {
+  position: relative;
+  z-index: 2;
 }
 
 .newsletter h2 {
