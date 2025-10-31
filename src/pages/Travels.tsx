@@ -134,7 +134,7 @@ const Travels = () => {
     setFilteredTravels(filtered)
   }, [searchTerm, selectedCategory, priceRange, travels])
 
-  const categories = ['Gastronomía', 'Aventura', 'Cultural', 'Relax', 'Social', 'Corporativo', 'Deportes']
+  const categories = ['Caribe', 'Europa', 'Estados Unidos', 'Sudamérica', 'Asia', 'África', 'Cruceros', 'Hoteles', 'Actividades', 'Trenes', 'Alquileres de autos', 'Seguro al viajero']
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-AR', {
