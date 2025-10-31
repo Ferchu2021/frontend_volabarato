@@ -4,12 +4,16 @@
 }
 
 .hero-section {
-  background: url('/images/montana.png') center/cover no-repeat;
+  background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('/images/rio.png');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
   color: white;
   padding: 4rem 0;
   text-align: center;
   position: relative;
   overflow: hidden;
+  min-height: 400px;
 }
 
 .hero-section::before {
