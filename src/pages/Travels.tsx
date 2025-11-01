@@ -225,9 +225,13 @@ const Travels = () => {
     }
 
     // Filtro por rango de precio
-    filtered = filtered.filter(travel => 
-      travel.price >= priceRange.min && travel.price <= priceRange.max
-    )
+    filtered = filtered.filter(travel => {
+      // Si el viaje tiene precio de consulta, no aplicar filtro de precio
+      if (travel.consultPrice) {
+        return true
+      }
+      return travel.price >= priceRange.min && travel.price <= priceRange.max
+    })
 
     setFilteredTravels(filtered)
   }, [searchTerm, selectedCategory, priceRange, travels])
