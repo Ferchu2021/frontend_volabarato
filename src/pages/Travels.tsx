@@ -12,6 +12,7 @@ interface Travel {
   images: string[]
   description: string
   category: string
+  consultPrice?: boolean
 }
 
 const Travels = () => {
@@ -155,7 +156,7 @@ const Travels = () => {
         id: '10',
         title: 'Asistencia al viajero',
         destination: 'Global',
-        price: 5000,
+        price: 0,
         currency: 'USD',
         duration: 'Anual',
         images: [
@@ -163,7 +164,8 @@ const Travels = () => {
           '/images/travel-2.jpg'
         ],
         description: 'Protegete durante tus viajes con nuestra cobertura de asistencia médica y de viaje internacional.',
-        category: 'Seguro al viajero'
+        category: 'Seguro al viajero',
+        consultPrice: true
       },
       {
         id: '11',
@@ -183,7 +185,7 @@ const Travels = () => {
         id: '12',
         title: 'Alquiler de autos',
         destination: 'Varios destinos',
-        price: 8000,
+        price: 0,
         currency: 'USD',
         duration: 'Por día',
         images: [
@@ -191,7 +193,8 @@ const Travels = () => {
           '/images/travel-4.jpg'
         ],
         description: 'Tené libertad de movimiento con nuestros alquileres de autos en todo el mundo.',
-        category: 'Alquileres de autos'
+        category: 'Alquileres de autos',
+        consultPrice: true
       }
     ]
 
@@ -345,8 +348,14 @@ const Travels = () => {
                   
                   <div className="travel-footer">
                     <div className="travel-price">
-                      <span className="price-label">Desde</span>
-                      <span className="price-amount">{formatPrice(travel.price, travel.currency)}</span>
+                      {travel.consultPrice ? (
+                        <span className="price-amount">Cotización a solicitud</span>
+                      ) : (
+                        <>
+                          <span className="price-label">Desde</span>
+                          <span className="price-amount">{formatPrice(travel.price, travel.currency)}</span>
+                        </>
+                      )}
                     </div>
                     
                     <button className="btn btn-primary">
