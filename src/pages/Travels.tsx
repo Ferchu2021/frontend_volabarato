@@ -58,7 +58,7 @@ const Travels = () => {
         id: '3',
         title: 'Asia',
         destination: 'Asia',
-        price: 35000,
+        price: 2000,
         currency: 'USD',
         duration: '14 días',
         images: [
