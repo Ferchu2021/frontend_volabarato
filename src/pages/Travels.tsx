@@ -114,7 +114,7 @@ const Travels = () => {
         id: '7',
         title: 'Trenes',
         destination: 'Varios destinos',
-        price: 18000,
+        price: 0,
         currency: 'USD',
         duration: '5 días',
         images: [
@@ -122,7 +122,8 @@ const Travels = () => {
           '/images/travel-3.jpg'
         ],
         description: 'Viví experiencias únicas en trenes de lujo a través de paisajes espectaculares.',
-        category: 'Trenes'
+        category: 'Trenes',
+        consultPrice: true
       },
       {
         id: '8',
@@ -142,7 +143,7 @@ const Travels = () => {
         id: '9',
         title: 'Hoteles',
         destination: 'Varios destinos',
-        price: 12000,
+        price: 0,
         currency: 'USD',
         duration: 'Noches a medida',
         images: [
@@ -150,7 +151,8 @@ const Travels = () => {
           '/images/travel-1.jpg'
         ],
         description: 'Encontramos el alojamiento perfecto para tu viaje. Hoteles de lujo, boutique y económicos.',
-        category: 'Hoteles'
+        category: 'Hoteles',
+        consultPrice: true
       },
       {
         id: '10',
