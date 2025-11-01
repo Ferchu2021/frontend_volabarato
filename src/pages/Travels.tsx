@@ -129,7 +129,7 @@ const Travels = () => {
         id: '8',
         title: 'Actividades',
         destination: 'Varios destinos',
-        price: 15000,
+        price: 0,
         currency: 'USD',
         duration: '3 días',
         images: [
@@ -137,7 +137,8 @@ const Travels = () => {
           '/images/travel-4.jpg'
         ],
         description: 'Disfrutá de actividades emocionantes y aventureras en destinos únicos.',
-        category: 'Actividades'
+        category: 'Actividades',
+        consultPrice: true
       },
       {
         id: '9',
@@ -173,7 +174,7 @@ const Travels = () => {
         id: '11',
         title: 'Cruceros',
         destination: 'Múltiples destinos',
-        price: 30000,
+        price: 0,
         currency: 'USD',
         duration: '7 días',
         images: [
@@ -181,7 +182,8 @@ const Travels = () => {
           '/images/travel-3.jpg'
         ],
         description: 'Navegá por destinos espectaculares en cruceros de lujo con todas las comodidades.',
-        category: 'Cruceros'
+        category: 'Cruceros',
+        consultPrice: true
       },
       {
         id: '12',
