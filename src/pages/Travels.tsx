@@ -26,81 +26,107 @@ const Travels = () => {
     const mockTravels: Travel[] = [
       {
         id: '1',
-        title: 'La Ruta del Helado en Rosario',
-        destination: 'Rosario, Argentina',
+        title: 'Caribe',
+        destination: 'Caribe',
         price: 15000,
-        duration: '2 días',
+        duration: '7 días',
         images: [
-          'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=500',
-          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500'
+          '/images/caribe.jpg',
+          '/images/travel-1.jpg'
         ],
-        description: 'Descubrí la capital nacional del helado con un recorrido por las mejores heladerías artesanales. Incluye degustaciones, visitas a fábricas y experiencias gastronómicas únicas.',
-        category: 'Gastronomía'
+        description: 'Descubrí los paraísos caribeños con playas de arena blanca y aguas turquesa. Perfecto para relajarse y disfrutar del sol.',
+        category: 'Caribe'
       },
       {
         id: '2',
-        title: 'Solos y Solas',
-        destination: 'Varios destinos',
+        title: 'Europa',
+        destination: 'Europa',
         price: 25000,
-        duration: '3-5 días',
+        duration: '10 días',
         images: [
-          'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500',
-          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500'
+          '/images/europa.png',
+          '/images/travel-2.jpg'
         ],
-        description: 'Viajes diseñados especialmente para viajeros solos que quieren conocer gente nueva. Grupos reducidos, actividades sociales y alojamiento compartido.',
-        category: 'Social'
+        description: 'Explorá la rica historia y cultura de Europa. Visita ciudades icónicas, monumentos históricos y disfruta de la gastronomía local.',
+        category: 'Europa'
       },
       {
         id: '3',
-        title: 'Team Building en la Naturaleza',
-        destination: 'Sierras de Córdoba',
-        price: 18000,
-        duration: '2 días',
+        title: 'Asia',
+        destination: 'Asia',
+        price: 35000,
+        duration: '14 días',
         images: [
-          'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=500',
-          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500'
+          '/images/asia.jpg',
+          '/images/travel-3.jpg'
         ],
-        description: 'Experiencias corporativas que fortalecen equipos y crean vínculos duraderos. Actividades outdoor, talleres de liderazgo y momentos de conexión.',
-        category: 'Corporativo'
+        description: 'Sumergite en el misticismo de Asia. Desde templos antiguos hasta ciudades modernas, una experiencia cultural única.',
+        category: 'Asia'
       },
       {
         id: '4',
-        title: 'Conocé Rosario, la ciudad del fútbol',
-        destination: 'Rosario, Argentina',
-        price: 12000,
-        duration: '1 día',
+        title: 'África',
+        destination: 'África',
+        price: 40000,
+        duration: '12 días',
         images: [
-          'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500',
-          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500'
+          '/images/africa.jpg',
+          '/images/travel-4.jpg'
         ],
-        description: 'Un recorrido por la historia futbolística de la ciudad que vio nacer a Messi. Visita al Monumento a la Bandera, estadios y museos deportivos.',
-        category: 'Deportes'
+        description: 'Viví la aventura de safari africano con observación de la fauna salvaje y paisajes increíbles.',
+        category: 'África'
       },
       {
         id: '5',
-        title: 'Aventura en las Cataratas',
-        destination: 'Puerto Iguazú, Argentina',
-        price: 35000,
-        duration: '4 días',
+        title: 'Estados Unidos',
+        destination: 'Estados Unidos',
+        price: 30000,
+        duration: '10 días',
         images: [
-          'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=500',
-          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500'
+          '/images/usa.png',
+          '/images/travel-1.jpg'
         ],
-        description: 'Explorá una de las maravillas naturales del mundo. Trekking, navegación por el río Iguazú y experiencias en la selva misionera.',
-        category: 'Aventura'
+        description: 'Descubrí las ciudades más emblemáticas de Estados Unidos y sus iconos culturales.',
+        category: 'Estados Unidos'
       },
       {
         id: '6',
-        title: 'Cultura y Vinos en Mendoza',
-        destination: 'Mendoza, Argentina',
-        price: 28000,
+        title: 'Sudamérica',
+        destination: 'Sudamérica',
+        price: 20000,
+        duration: '8 días',
+        images: [
+          '/images/sudamerica.jpg',
+          '/images/travel-2.jpg'
+        ],
+        description: 'Conocé la diversidad de Sudamérica: paisajes andinos, selvas tropicales y ciudades vibrantes.',
+        category: 'Sudamérica'
+      },
+      {
+        id: '7',
+        title: 'Trenes',
+        destination: 'Varios destinos',
+        price: 18000,
+        duration: '5 días',
+        images: [
+          '/images/trenes.jpg',
+          '/images/travel-3.jpg'
+        ],
+        description: 'Viví experiencias únicas en trenes de lujo a través de paisajes espectaculares.',
+        category: 'Trenes'
+      },
+      {
+        id: '8',
+        title: 'Actividades',
+        destination: 'Varios destinos',
+        price: 15000,
         duration: '3 días',
         images: [
-          'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500',
-          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500'
+          '/images/actividades.jpg',
+          '/images/travel-4.jpg'
         ],
-        description: 'Recorré las mejores bodegas de la región, degustá vinos premium y disfrutá de la gastronomía local en un entorno de montaña.',
-        category: 'Cultural'
+        description: 'Disfrutá de actividades emocionantes y aventureras en destinos únicos.',
+        category: 'Actividades'
       }
     ]
 
