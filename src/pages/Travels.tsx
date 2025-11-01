@@ -7,6 +7,7 @@ interface Travel {
   title: string
   destination: string
   price: number
+  currency: string
   duration: string
   images: string[]
   description: string
@@ -28,7 +29,8 @@ const Travels = () => {
         id: '1',
         title: 'Caribe',
         destination: 'Caribe',
-        price: 15000,
+        price: 2702,
+        currency: 'USD',
         duration: '7 días',
         images: [
           '/images/caribe.jpg',
@@ -41,7 +43,8 @@ const Travels = () => {
         id: '2',
         title: 'Europa',
         destination: 'Europa',
-        price: 25000,
+        price: 2245,
+        currency: 'EUR',
         duration: '10 días',
         images: [
           '/images/europa.png',
@@ -55,6 +58,7 @@ const Travels = () => {
         title: 'Asia',
         destination: 'Asia',
         price: 35000,
+        currency: 'USD',
         duration: '14 días',
         images: [
           '/images/asia.jpg',
@@ -67,7 +71,8 @@ const Travels = () => {
         id: '4',
         title: 'África',
         destination: 'África',
-        price: 40000,
+        price: 1310,
+        currency: 'USD',
         duration: '12 días',
         images: [
           '/images/africa.jpg',
@@ -80,7 +85,8 @@ const Travels = () => {
         id: '5',
         title: 'Estados Unidos',
         destination: 'Estados Unidos',
-        price: 30000,
+        price: 638,
+        currency: 'USD',
         duration: '10 días',
         images: [
           '/images/usa.png',
@@ -93,7 +99,8 @@ const Travels = () => {
         id: '6',
         title: 'Sudamérica',
         destination: 'Sudamérica',
-        price: 20000,
+        price: 859,
+        currency: 'USD',
         duration: '8 días',
         images: [
           '/images/sudamerica.jpg',
@@ -107,6 +114,7 @@ const Travels = () => {
         title: 'Trenes',
         destination: 'Varios destinos',
         price: 18000,
+        currency: 'USD',
         duration: '5 días',
         images: [
           '/images/trenes.jpg',
@@ -120,6 +128,7 @@ const Travels = () => {
         title: 'Actividades',
         destination: 'Varios destinos',
         price: 15000,
+        currency: 'USD',
         duration: '3 días',
         images: [
           '/images/actividades.jpg',
@@ -133,6 +142,7 @@ const Travels = () => {
         title: 'Hoteles',
         destination: 'Varios destinos',
         price: 12000,
+        currency: 'USD',
         duration: 'Noches a medida',
         images: [
           '/images/hoteles.jpg',
@@ -146,6 +156,7 @@ const Travels = () => {
         title: 'Asistencia al viajero',
         destination: 'Global',
         price: 5000,
+        currency: 'USD',
         duration: 'Anual',
         images: [
           '/images/asistenciaalviajero.jpg',
@@ -159,6 +170,7 @@ const Travels = () => {
         title: 'Cruceros',
         destination: 'Múltiples destinos',
         price: 30000,
+        currency: 'USD',
         duration: '7 días',
         images: [
           '/images/crucero.jpg',
@@ -172,6 +184,7 @@ const Travels = () => {
         title: 'Alquiler de autos',
         destination: 'Varios destinos',
         price: 8000,
+        currency: 'USD',
         duration: 'Por día',
         images: [
           '/images/auto.jpg',
@@ -214,10 +227,10 @@ const Travels = () => {
 
   const categories = ['Caribe', 'Europa', 'Estados Unidos', 'Sudamérica', 'Asia', 'África', 'Cruceros', 'Hoteles', 'Actividades', 'Trenes', 'Alquileres de autos', 'Seguro al viajero']
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (price: number, currency: string) => {
     return new Intl.NumberFormat('es-AR', {
       style: 'currency',
-      currency: 'ARS'
+      currency: currency
     }).format(price)
   }
 
@@ -333,7 +346,7 @@ const Travels = () => {
                   <div className="travel-footer">
                     <div className="travel-price">
                       <span className="price-label">Desde</span>
-                      <span className="price-amount">{formatPrice(travel.price)}</span>
+                      <span className="price-amount">{formatPrice(travel.price, travel.currency)}</span>
                     </div>
                     
                     <button className="btn btn-primary">
