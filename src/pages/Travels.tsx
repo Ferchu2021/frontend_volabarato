@@ -362,9 +362,14 @@ const Travels = () => {
                       )}
                     </div>
                     
-                    <button className="btn btn-primary">
-                      Ver Detalles
-                    </button>
+                    <a 
+                      href="https://web.whatsapp.com/send?phone=543412163431"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-primary"
+                    >
+                      Contactanos
+                    </a>
                   </div>
                 </div>
               </div>
