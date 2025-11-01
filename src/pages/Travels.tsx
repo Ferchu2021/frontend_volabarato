@@ -127,6 +127,58 @@ const Travels = () => {
         ],
         description: 'Disfrutá de actividades emocionantes y aventureras en destinos únicos.',
         category: 'Actividades'
+      },
+      {
+        id: '9',
+        title: 'Hoteles',
+        destination: 'Varios destinos',
+        price: 12000,
+        duration: 'Noches a medida',
+        images: [
+          '/images/hoteles.jpg',
+          '/images/travel-1.jpg'
+        ],
+        description: 'Encontramos el alojamiento perfecto para tu viaje. Hoteles de lujo, boutique y económicos.',
+        category: 'Hoteles'
+      },
+      {
+        id: '10',
+        title: 'Asistencia al viajero',
+        destination: 'Global',
+        price: 5000,
+        duration: 'Anual',
+        images: [
+          '/images/asistenciaalviajero.jpg',
+          '/images/travel-2.jpg'
+        ],
+        description: 'Protegete durante tus viajes con nuestra cobertura de asistencia médica y de viaje internacional.',
+        category: 'Seguro al viajero'
+      },
+      {
+        id: '11',
+        title: 'Cruceros',
+        destination: 'Múltiples destinos',
+        price: 30000,
+        duration: '7 días',
+        images: [
+          '/images/crucero.jpg',
+          '/images/travel-3.jpg'
+        ],
+        description: 'Navegá por destinos espectaculares en cruceros de lujo con todas las comodidades.',
+        category: 'Cruceros'
+      },
+      {
+        id: '12',
+        title: 'Alquiler de autos',
+        destination: 'Varios destinos',
+        price: 8000,
+        duration: 'Por día',
+        images: [
+          '/images/auto.jpg',
+          '/images/travel-4.jpg'
+        ],
+        description: 'Tené libertad de movimiento con nuestros alquileres de autos en todo el mundo.',
+        category: 'Alquileres de autos'
       }
     ]
 
