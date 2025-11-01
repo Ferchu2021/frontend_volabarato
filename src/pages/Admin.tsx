@@ -8,11 +8,17 @@ import {
   fetchBookingStats,
   Booking 
 } from '../store/slices/bookingSlice'
+import { 
+  fetchUsers, 
+  createUser, 
+  updateUser
+} from '../store/slices/userSlice'
 import { useNavigate } from 'react-router-dom'
-import { FaSignOutAlt, FaPlus, FaEdit, FaTrash, FaEye, FaCheck } from 'react-icons/fa'
+import { FaSignOutAlt, FaPlus, FaEdit, FaTrash, FaEye, FaCheck, FaUsers } from 'react-icons/fa'
 import TravelModal from '../components/admin/TravelModal'
 import BookingModal from '../components/admin/BookingModal'
 import SubscriberModal from '../components/admin/SubscriberModal'
+import UserModal from '../components/admin/UserModal'
 import ConfirmModal from '../components/common/ConfirmModal'
 import './Admin.css'
 
@@ -41,11 +47,13 @@ const Admin = () => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { bookings, loading, error, stats } = useAppSelector(state => state.bookings)
+  const { users: adminUsers, loading: usersLoading } = useAppSelector(state => state.users)
   
-  const [activeTab, setActiveTab] = useState<'travels' | 'bookings' | 'subscribers'>('bookings')
+  const [activeTab, setActiveTab] = useState<'travels' | 'bookings' | 'subscribers' | 'users'>('bookings')
   const [showTravelModal, setShowTravelModal] = useState(false)
   const [showBookingModal, setShowBookingModal] = useState(false)
   const [showSubscriberModal, setShowSubscriberModal] = useState(false)
+  const [showUserModal, setShowUserModal] = useState(false)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [selectedItem, setSelectedItem] = useState<any>(null)
   const [action, setAction] = useState<'create' | 'edit' | 'delete'>('create')
@@ -53,6 +61,7 @@ const Admin = () => {
   useEffect(() => {
     dispatch(fetchBookings({}))
     dispatch(fetchBookingStats({}))
+    dispatch(fetchUsers())
   }, [dispatch])
 
   const handleStatusChange = (bookingId: string, newStatus: Booking['estado']) => {
@@ -145,6 +154,7 @@ const Admin = () => {
     if (activeTab === 'travels') setShowTravelModal(true)
     else if (activeTab === 'bookings') setShowBookingModal(true)
     else if (activeTab === 'subscribers') setShowSubscriberModal(true)
+    else if (activeTab === 'users') setShowUserModal(true)
   }
 
   const handleEdit = (item: any) => {
@@ -153,6 +163,7 @@ const Admin = () => {
     if (activeTab === 'travels') setShowTravelModal(true)
     else if (activeTab === 'bookings') setShowBookingModal(true)
     else if (activeTab === 'subscribers') setShowSubscriberModal(true)
+    else if (activeTab === 'users') setShowUserModal(true)
   }
 
   const handleDelete = (item: any) => {
@@ -171,6 +182,9 @@ const Admin = () => {
       }
     } else if (activeTab === 'subscribers') {
       setSubscribers(prev => prev.filter(s => s.id !== selectedItem.id))
+    } else if (activeTab === 'users') {
+      // Para usuarios, por ahora no permitimos eliminación (solo el usuario actual puede eliminarse)
+      console.log('Eliminación de usuarios no disponible desde el admin')
     }
     setShowConfirmModal(false)
     setSelectedItem(null)
@@ -226,6 +240,12 @@ const Admin = () => {
             onClick={() => setActiveTab('subscribers')}
           >
             Suscriptores
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}
+            onClick={() => setActiveTab('users')}
+          >
+            <FaUsers /> Usuarios
           </button>
         </div>
 
@@ -411,6 +431,50 @@ const Admin = () => {
               </table>
             </div>
           )}
+
+          {activeTab === 'users' && (
+            <div className="table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Usuario</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {usersLoading ? (
+                    <tr>
+                      <td colSpan={3} style={{ textAlign: 'center', padding: '2rem' }}>
+                        <div className="spinner"></div>
+                        <p>Cargando usuarios...</p>
+                      </td>
+                    </tr>
+                  ) : adminUsers.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} style={{ textAlign: 'center', padding: '2rem' }}>
+                        <p>No hay usuarios disponibles</p>
+                      </td>
+                    </tr>
+                  ) : (
+                    adminUsers.map(user => (
+                      <tr key={user._id}>
+                        <td>{user._id}</td>
+                        <td>{user.usuario}</td>
+                        <td>
+                          <div className="action-buttons">
+                            <button className="btn-icon" onClick={() => handleEdit(user)}>
+                              <FaEdit />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 
@@ -465,6 +529,28 @@ const Admin = () => {
               ))
             }
             setShowSubscriberModal(false)
+          }}
+        />
+      )}
+
+      {showUserModal && (
+        <UserModal
+          isOpen={showUserModal}
+          onClose={() => setShowUserModal(false)}
+          user={selectedItem}
+          action={action === 'delete' ? 'edit' : action}
+          onSave={async (userData: any) => {
+            try {
+              if (action === 'create') {
+                await dispatch(createUser(userData)).unwrap()
+                await dispatch(fetchUsers())
+              } else if (action === 'edit') {
+                await dispatch(updateUser(userData)).unwrap()
+                await dispatch(fetchUsers())
+              }
+            } catch (error) {
+              console.error('Error guardando usuario:', error)
+            }
           }}
         />
       )}

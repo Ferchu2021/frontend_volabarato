@@ -265,6 +265,35 @@ class ApiService {
   async getPaqueteById(id: string): Promise<Paquete> {
     return this.request<Paquete>(`/paquete/${id}`);
   }
+
+  // Métodos para gestión de usuarios
+  async registerUser(data: { usuario: string; password: string }): Promise<{ message: string; user: User }> {
+    return this.request<{ message: string; user: User }>('/user/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getUsers(): Promise<User[]> {
+    return this.request<User[]>('/user');
+  }
+
+  async getUserById(id: string): Promise<User> {
+    return this.request<User>(`/user/${id}`);
+  }
+
+  async updateCurrentUser(data: Partial<{ usuario: string }>): Promise<{ message: string; user: User }> {
+    return this.request<{ message: string; user: User }>('/user/me', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteCurrentUser(): Promise<{ message: string }> {
+    return this.request<{ message: string }>('/user/me', {
+      method: 'DELETE',
+    });
+  }
 }
 
 // Instancia singleton del servicio API
