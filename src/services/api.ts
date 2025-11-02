@@ -21,6 +21,7 @@ export interface PaginatedResponse<T> {
 // Interfaces para Reservas (compatible con el backend)
 export interface Reserva {
   _id: string;
+  numeroReserva: string;
   usuario: string;
   paquete: {
     _id: string;

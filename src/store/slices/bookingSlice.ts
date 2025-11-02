@@ -4,6 +4,7 @@ import { apiService, CreateReservaRequest, UpdateReservaRequest, handleApiError 
 // Interface compatible con el backend
 export interface Booking {
   _id: string
+  numeroReserva: string
   usuario: string
   paquete: {
     _id: string

@@ -23,8 +23,11 @@ import {
   FaEye,
   FaFilter,
   FaTimesCircle,
-  FaTrash
+  FaTrash,
+  FaHashtag,
+  FaExchangeAlt
 } from 'react-icons/fa'
+import { convertCurrency, formatCurrency, CURRENCY_OPTIONS, Currency } from '../utils/currency'
 import './MisReservas.css'
 
 const MisReservas: React.FC = () => {
@@ -34,6 +37,7 @@ const MisReservas: React.FC = () => {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
   const [showFilters, setShowFilters] = useState(false)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [selectedCurrency, setSelectedCurrency] = useState<Currency>('ARS')
   const [actionToConfirm, setActionToConfirm] = useState<{
     type: 'cancel' | 'delete'
     booking: Booking | null
@@ -89,11 +93,9 @@ const MisReservas: React.FC = () => {
     })
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS'
-    }).format(amount)
+  const formatPrice = (amount: number) => {
+    const converted = convertCurrency(amount, 'ARS', selectedCurrency)
+    return formatCurrency(converted, selectedCurrency)
   }
 
   const getStatusColor = (status: Booking['estado']) => {
@@ -141,6 +143,25 @@ const MisReservas: React.FC = () => {
       <div className="mis-reservas-header">
         <h1>Mis Reservas</h1>
         <p>Gestiona todas tus reservas de viaje</p>
+      </div>
+
+      {/* Selector de moneda */}
+      <div className="currency-selector-section">
+        <label htmlFor="currency-select">
+          <FaExchangeAlt /> Moneda de visualización:
+        </label>
+        <select 
+          id="currency-select"
+          value={selectedCurrency} 
+          onChange={(e) => setSelectedCurrency(e.target.value as Currency)}
+          className="currency-select"
+        >
+          {CURRENCY_OPTIONS.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.symbol} {option.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Filtros */}
@@ -198,7 +219,15 @@ const MisReservas: React.FC = () => {
               transition={{ duration: 0.3 }}
             >
               <div className="reserva-header">
-                <h3>{booking.paquete.nombre}</h3>
+                <div className="reserva-title-section">
+                  <h3>{booking.paquete.nombre}</h3>
+                  {booking.numeroReserva && (
+                    <div className="numero-reserva">
+                      <FaHashtag />
+                      <span>{booking.numeroReserva}</span>
+                    </div>
+                  )}
+                </div>
                 <span 
                   className="status-badge"
                   style={{ backgroundColor: getStatusColor(booking.estado) }}
@@ -218,9 +247,16 @@ const MisReservas: React.FC = () => {
                   <span>{booking.cantidadPersonas} persona{booking.cantidadPersonas > 1 ? 's' : ''}</span>
                 </div>
                 
-                <div className="info-item">
+                <div className="info-item price-item">
                   <FaDollarSign />
-                  <span>{formatCurrency(booking.precioTotal)}</span>
+                  <div className="price-conversion">
+                    <span className="main-price">{formatPrice(booking.precioTotal)}</span>
+                    {selectedCurrency !== 'ARS' && (
+                      <span className="original-price">
+                        ({formatCurrency(booking.precioTotal, 'ARS')})
+                      </span>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="info-item">
@@ -345,11 +381,19 @@ const MisReservas: React.FC = () => {
             <div className="modal-content">
               <div className="detail-section">
                 <h4>Información del viaje</h4>
+                {selectedBooking.numeroReserva && (
+                  <p><strong>Número de reserva:</strong> {selectedBooking.numeroReserva}</p>
+                )}
                 <p><strong>Paquete:</strong> {selectedBooking.paquete.nombre}</p>
                 <p><strong>Destino:</strong> {selectedBooking.paquete.destino}</p>
                 <p><strong>Fecha de viaje:</strong> {formatDate(selectedBooking.fechaViaje)}</p>
                 <p><strong>Cantidad de personas:</strong> {selectedBooking.cantidadPersonas}</p>
-                <p><strong>Precio total:</strong> {formatCurrency(selectedBooking.precioTotal)}</p>
+                <p><strong>Precio total:</strong> 
+                  <span className="main-price"> {formatPrice(selectedBooking.precioTotal)}</span>
+                  {selectedCurrency !== 'ARS' && (
+                    <span className="original-price"> ({formatCurrency(selectedBooking.precioTotal, 'ARS')})</span>
+                  )}
+                </p>
               </div>
               
               <div className="detail-section">
