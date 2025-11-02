@@ -37,7 +37,12 @@ const Login = () => {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await dispatch(loginUser(data)).unwrap()
+      // Limpiar espacios en blanco de los campos antes de enviar
+      const cleanedData = {
+        usuario: data.usuario.trim(),
+        password: data.password.trim()
+      }
+      await dispatch(loginUser(cleanedData)).unwrap()
     } catch (error) {
       console.error('Error en el login:', error)
     }

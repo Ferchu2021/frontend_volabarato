@@ -100,7 +100,8 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false
-        state.error = action.error.message || 'Error en el login'
+        // Usar el mensaje de error de rejectWithValue si está disponible
+        state.error = (action.payload as string) || action.error.message || 'Error en el login'
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null
