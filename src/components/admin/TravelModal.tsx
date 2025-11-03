@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { FaTimes, FaSave } from 'react-icons/fa'
+import ImageUpload from '../common/ImageUpload'
 import './TravelModal.css'
 
 interface Travel {
@@ -23,11 +25,14 @@ interface TravelModalProps {
 }
 
 const TravelModal = ({ isOpen, onClose, travel, action, onSave }: TravelModalProps) => {
+  const [imageData, setImageData] = useState<string>('')
+  
   const {
     register,
     handleSubmit,
     formState: { errors },
-    reset
+    reset,
+    setValue
   } = useForm<Travel>({
     defaultValues: travel || {
       title: '',
@@ -40,19 +45,39 @@ const TravelModal = ({ isOpen, onClose, travel, action, onSave }: TravelModalPro
       category: ''
     }
   })
+  
+  // Actualizar imageData cuando cambie travel
+  useEffect(() => {
+    if (travel?.image) {
+      setImageData(travel.image)
+    }
+  }, [travel])
 
   const onSubmit = (data: Travel) => {
+    // Validar que haya imagen si no es edición
+    if (action === 'create' && !imageData && !data.image) {
+      return // El componente ImageUpload mostrará el error
+    }
+    
     const travelData = {
       ...data,
       id: travel?.id || Date.now().toString(),
-      price: Number(data.price)
+      price: Number(data.price),
+      image: imageData || data.image
     }
     onSave(travelData)
     reset()
+    setImageData('')
   }
-
+  
+  const handleImageSelect = (image: string) => {
+    setImageData(image)
+    setValue('image', image, { shouldValidate: false })
+  }
+  
   const handleClose = () => {
     reset()
+    setImageData('')
     onClose()
   }
 
@@ -155,22 +180,13 @@ const TravelModal = ({ isOpen, onClose, travel, action, onSave }: TravelModalPro
             </div>
 
             <div className="form-group">
-              <label className="form-label">URL de la imagen *</label>
-              <input
-                type="url"
-                className={`form-input ${errors.image ? 'error' : ''}`}
-                placeholder="https://ejemplo.com/imagen.jpg"
-                {...register('image', { 
-                  required: 'La URL de la imagen es requerida',
-                  pattern: {
-                    value: /^https?:\/\/.+/,
-                    message: 'Ingresa una URL válida'
-                  }
-                })}
+              <ImageUpload
+                label="Imagen *"
+                onImageSelect={handleImageSelect}
+                currentImage={imageData || travel?.image}
+                required={true}
+                maxSize={10}
               />
-              {errors.image && (
-                <span className="error-message">{errors.image.message}</span>
-              )}
             </div>
 
             <div className="form-group">
