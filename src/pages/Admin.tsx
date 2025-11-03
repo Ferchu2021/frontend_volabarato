@@ -552,7 +552,13 @@ const Admin = () => {
                   }
                 }
                 console.log('Datos de la reserva que se enviarán:', reservaData)
-                await dispatch(createBooking(reservaData))
+                const result = await dispatch(createBooking(reservaData))
+                if (createBooking.rejected.match(result)) {
+                  console.error('Error al crear reserva:', result.payload)
+                  alert('Error al crear la reserva: ' + (result.payload || 'Error desconocido'))
+                  return
+                }
+                console.log('Reserva creada exitosamente:', result.payload)
                 await dispatch(fetchBookings({}))
                 await dispatch(fetchBookingStats({}))
               } else if (action === 'edit') {
