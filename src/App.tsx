@@ -9,6 +9,8 @@ import Travels from './pages/Travels'
 import Contact from './pages/Contact'
 import Login from './pages/Login'
 import Admin from './pages/Admin'
+import MisReservas from './pages/MisReservas'
+import NuevaReserva from './pages/NuevaReserva'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import './App.css'
 
@@ -33,6 +35,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <Admin />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/mis-reservas" 
+            element={
+              <ProtectedRoute>
+                <MisReservas />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/nueva-reserva" 
+            element={
+              <ProtectedRoute>
+                <NuevaReserva />
               </ProtectedRoute>
             } 
           />
