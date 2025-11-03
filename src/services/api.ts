@@ -147,6 +147,7 @@ class ApiService {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('API Error Response:', errorData);
         // Incluir mensaje del backend si está disponible
         const errorMessage = errorData.message 
           ? `${errorData.error || 'Error'}: ${errorData.message}`
