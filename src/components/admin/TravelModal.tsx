@@ -26,6 +26,7 @@ interface TravelModalProps {
 
 const TravelModal = ({ isOpen, onClose, travel, action, onSave }: TravelModalProps) => {
   const [imageData, setImageData] = useState<string>('')
+  const [imageError, setImageError] = useState<string>('')
   
   const {
     register,
@@ -50,14 +51,21 @@ const TravelModal = ({ isOpen, onClose, travel, action, onSave }: TravelModalPro
   useEffect(() => {
     if (travel?.image) {
       setImageData(travel.image)
+      setImageError('')
+    } else if (!travel && action === 'create') {
+      setImageData('')
+      setImageError('')
     }
-  }, [travel])
+  }, [travel, action])
 
   const onSubmit = (data: Travel) => {
-    // Validar que haya imagen si no es edición
-    if (action === 'create' && !imageData && !data.image) {
-      return // El componente ImageUpload mostrará el error
+    // Validar que haya imagen
+    if (!imageData && !data.image) {
+      setImageError('La imagen es requerida')
+      return
     }
+    
+    setImageError('')
     
     const travelData = {
       ...data,
@@ -68,16 +76,19 @@ const TravelModal = ({ isOpen, onClose, travel, action, onSave }: TravelModalPro
     onSave(travelData)
     reset()
     setImageData('')
+    setImageError('')
   }
   
   const handleImageSelect = (image: string) => {
     setImageData(image)
+    setImageError('')
     setValue('image', image, { shouldValidate: false })
   }
   
   const handleClose = () => {
     reset()
     setImageData('')
+    setImageError('')
     onClose()
   }
 
@@ -187,6 +198,9 @@ const TravelModal = ({ isOpen, onClose, travel, action, onSave }: TravelModalPro
                 required={true}
                 maxSize={10}
               />
+              {imageError && (
+                <span className="error-message" style={{ marginTop: '8px', display: 'block' }}>{imageError}</span>
+              )}
             </div>
 
             <div className="form-group">

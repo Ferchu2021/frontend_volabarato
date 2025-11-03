@@ -27,6 +27,7 @@ interface Travel {
   title: string
   destination: string
   price: number
+  currency?: string
   duration: string
   image: string
   description: string
@@ -119,6 +120,7 @@ const Admin = () => {
       title: 'La Ruta del Helado en Rosario',
       destination: 'Rosario, Argentina',
       price: 15000,
+      currency: 'ARS',
       duration: '2 días',
       image: '/images/helado-rosario.jpg',
       description: 'Descubrí la capital nacional del helado con un recorrido por las mejores heladerías artesanales.',
@@ -129,6 +131,7 @@ const Admin = () => {
       title: 'Solos y Solas',
       destination: 'Varios destinos',
       price: 25000,
+      currency: 'ARS',
       duration: '3-5 días',
       image: '/images/solos-solas.jpg',
       description: 'Viajes diseñados especialmente para viajeros solos que quieren conocer gente nueva.',
