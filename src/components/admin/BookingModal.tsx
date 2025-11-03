@@ -13,6 +13,7 @@ interface Booking {
   travelDate: string
   passengers: number
   totalPrice: number
+  currency?: string
   status: 'pending' | 'confirmed' | 'cancelled'
   paymentMethod?: 'efectivo' | 'tarjeta' | 'transferencia'
   notes?: string
@@ -42,6 +43,7 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave, travels = [] }
       travelDate: '',
       passengers: 1,
       totalPrice: 0,
+      currency: 'ARS',
       status: 'pending',
       paymentMethod: 'tarjeta',
       notes: ''
@@ -197,20 +199,34 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave, travels = [] }
 
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">Precio Total (ARS) *</label>
-                <input
-                  type="number"
-                  className={`form-input ${errors.totalPrice ? 'error' : ''}`}
-                  placeholder="0"
-                  min="0"
-                  step="0.01"
-                  {...register('totalPrice', { 
-                    required: 'El precio total es requerido',
-                    min: { value: 0, message: 'El precio debe ser mayor a 0' }
-                  })}
-                />
+                <label className="form-label">Precio Total *</label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className={`form-input ${errors.totalPrice ? 'error' : ''}`}
+                    placeholder="0.00"
+                    min="0"
+                    style={{ flex: '1' }}
+                    {...register('totalPrice', {
+                      required: 'El precio es requerido',
+                      min: { value: 0.01, message: 'El precio debe ser mayor a 0' }
+                    })}
+                  />
+                  <select
+                    className={`form-input ${errors.currency ? 'error' : ''}`}
+                    style={{ width: '120px' }}
+                    {...register('currency', { required: 'La moneda es requerida' })}
+                  >
+                    <option value="ARS">ARS</option>
+                    <option value="USD">USD</option>
+                  </select>
+                </div>
                 {errors.totalPrice && (
                   <span className="error-message">{errors.totalPrice.message}</span>
+                )}
+                {errors.currency && (
+                  <span className="error-message">{errors.currency.message}</span>
                 )}
               </div>
               

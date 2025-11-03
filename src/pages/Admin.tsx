@@ -23,6 +23,7 @@ import SubscriberModal from '../components/admin/SubscriberModal'
 import UserModal from '../components/admin/UserModal'
 import ConfirmModal from '../components/common/ConfirmModal'
 import { apiService, Paquete } from '../services/api'
+import { convertCurrency } from '../utils/currency'
 import './Admin.css'
 
 interface Travel {
@@ -538,11 +539,17 @@ const Admin = () => {
             try {
               if (action === 'create') {
                 // Mapear los datos del formulario a CreateReservaRequest
+                // Convertir el precio a ARS si la moneda seleccionada no es ARS
+                const currencyFrom = bookingData.currency || 'ARS'
+                const precioEnARS = currencyFrom === 'ARS' 
+                  ? Number(bookingData.totalPrice) 
+                  : convertCurrency(Number(bookingData.totalPrice), currencyFrom as any, 'ARS')
+                
                 const reservaData = {
                   paquete: bookingData.travelId,
                   fechaViaje: bookingData.travelDate,
                   cantidadPersonas: Number(bookingData.passengers),
-                  precioTotal: Number(bookingData.totalPrice),
+                  precioTotal: precioEnARS,
                   metodoPago: bookingData.paymentMethod || 'tarjeta',
                   observaciones: bookingData.notes || '',
                   datosContacto: {
@@ -563,10 +570,16 @@ const Admin = () => {
                 await dispatch(fetchBookingStats({}))
               } else if (action === 'edit') {
                 // Mapear para actualización
+                // Convertir el precio a ARS si la moneda seleccionada no es ARS
+                const currencyFrom = bookingData.currency || 'ARS'
+                const precioEnARS = currencyFrom === 'ARS' 
+                  ? Number(bookingData.totalPrice) 
+                  : convertCurrency(Number(bookingData.totalPrice), currencyFrom as any, 'ARS')
+                
                 const updateData = {
                   fechaViaje: bookingData.travelDate,
                   cantidadPersonas: Number(bookingData.passengers),
-                  precioTotal: Number(bookingData.totalPrice),
+                  precioTotal: precioEnARS,
                   metodoPago: bookingData.paymentMethod || 'tarjeta',
                   observaciones: bookingData.notes || '',
                   datosContacto: {
