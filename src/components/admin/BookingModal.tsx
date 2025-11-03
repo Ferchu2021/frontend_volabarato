@@ -159,8 +159,15 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave, travels = [] }
                 <input
                   type="date"
                   className={`form-input ${errors.travelDate ? 'error' : ''}`}
+                  min={new Date().toISOString().split('T')[0]}
                   {...register('travelDate', { 
-                    required: 'La fecha del viaje es requerida'
+                    required: 'La fecha del viaje es requerida',
+                    validate: (value) => {
+                      const selectedDate = new Date(value)
+                      const today = new Date()
+                      today.setHours(0, 0, 0, 0)
+                      return selectedDate > today || 'La fecha de viaje debe ser futura'
+                    }
                   })}
                 />
                 {errors.travelDate && (

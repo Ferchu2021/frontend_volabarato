@@ -551,6 +551,7 @@ const Admin = () => {
                     telefono: bookingData.customerPhone
                   }
                 }
+                console.log('Datos de la reserva que se enviarán:', reservaData)
                 await dispatch(createBooking(reservaData))
                 await dispatch(fetchBookings({}))
                 await dispatch(fetchBookingStats({}))
