@@ -3,6 +3,8 @@ import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { logoutUser } from '../store/slices/authSlice'
 import { 
   fetchBookings, 
+  createBooking,
+  updateBooking,
   updateBookingStatus, 
   deleteBooking,
   fetchBookingStats,
@@ -20,6 +22,7 @@ import BookingModal from '../components/admin/BookingModal'
 import SubscriberModal from '../components/admin/SubscriberModal'
 import UserModal from '../components/admin/UserModal'
 import ConfirmModal from '../components/common/ConfirmModal'
+import { apiService, Paquete } from '../services/api'
 import './Admin.css'
 
 interface Travel {
@@ -58,11 +61,23 @@ const Admin = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [selectedItem, setSelectedItem] = useState<any>(null)
   const [action, setAction] = useState<'create' | 'edit' | 'delete'>('create')
+  const [paquetes, setPaquetes] = useState<Paquete[]>([])
 
   useEffect(() => {
     dispatch(fetchBookings({}))
     dispatch(fetchBookingStats({}))
     dispatch(fetchUsers())
+    
+    // Cargar paquetes disponibles del backend
+    const loadPaquetes = async () => {
+      try {
+        const paquetesData = await apiService.getPaquetes()
+        setPaquetes(paquetesData)
+      } catch (error) {
+        console.error('Error al cargar paquetes:', error)
+      }
+    }
+    loadPaquetes()
   }, [dispatch])
 
   const handleStatusChange = (bookingId: string, newStatus: Booking['estado']) => {
@@ -503,11 +518,64 @@ const Admin = () => {
         <BookingModal
           isOpen={showBookingModal}
           onClose={() => setShowBookingModal(false)}
-          booking={selectedItem}
+          booking={selectedItem ? {
+            _id: selectedItem._id,
+            id: selectedItem._id,
+            travelId: selectedItem.paquete?._id || selectedItem.travelId || '',
+            customerName: selectedItem.datosContacto?.nombre || selectedItem.customerName || '',
+            customerEmail: selectedItem.datosContacto?.email || selectedItem.customerEmail || '',
+            customerPhone: selectedItem.datosContacto?.telefono || selectedItem.customerPhone || '',
+            travelDate: selectedItem.fechaViaje || selectedItem.travelDate || '',
+            passengers: selectedItem.cantidadPersonas || selectedItem.passengers || 1,
+            totalPrice: selectedItem.precioTotal || selectedItem.totalPrice || 0,
+            status: (selectedItem.estado === 'pendiente' ? 'pending' : selectedItem.estado === 'confirmada' ? 'confirmed' : 'cancelled') as any,
+            paymentMethod: selectedItem.metodoPago,
+            notes: selectedItem.observaciones
+          } : null}
           action={action === 'delete' ? 'edit' : action}
-          onSave={() => {
-            // Para reservas reales, las acciones se manejan a través de Redux
-            setShowBookingModal(false)
+          travels={paquetes}
+          onSave={async (bookingData: any) => {
+            try {
+              if (action === 'create') {
+                // Mapear los datos del formulario a CreateReservaRequest
+                const reservaData = {
+                  paquete: bookingData.travelId,
+                  fechaViaje: bookingData.travelDate,
+                  cantidadPersonas: Number(bookingData.passengers),
+                  precioTotal: Number(bookingData.totalPrice),
+                  metodoPago: bookingData.paymentMethod || 'tarjeta',
+                  observaciones: bookingData.notes || '',
+                  datosContacto: {
+                    nombre: bookingData.customerName,
+                    email: bookingData.customerEmail,
+                    telefono: bookingData.customerPhone
+                  }
+                }
+                await dispatch(createBooking(reservaData))
+                await dispatch(fetchBookings({}))
+                await dispatch(fetchBookingStats({}))
+              } else if (action === 'edit') {
+                // Mapear para actualización
+                const updateData = {
+                  fechaViaje: bookingData.travelDate,
+                  cantidadPersonas: Number(bookingData.passengers),
+                  precioTotal: Number(bookingData.totalPrice),
+                  metodoPago: bookingData.paymentMethod || 'tarjeta',
+                  observaciones: bookingData.notes || '',
+                  datosContacto: {
+                    nombre: bookingData.customerName,
+                    email: bookingData.customerEmail,
+                    telefono: bookingData.customerPhone
+                  }
+                }
+                await dispatch(updateBooking({ id: selectedItem._id || selectedItem.id, data: updateData }))
+                await dispatch(fetchBookings({}))
+                await dispatch(fetchBookingStats({}))
+              }
+              setShowBookingModal(false)
+            } catch (error) {
+              console.error('Error al guardar la reserva:', error)
+            }
           }}
         />
       )}

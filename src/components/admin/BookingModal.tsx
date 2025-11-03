@@ -1,9 +1,11 @@
 import { useForm } from 'react-hook-form'
 import { FaTimes, FaSave } from 'react-icons/fa'
+import { Paquete } from '../../services/api'
 import './BookingModal.css'
 
 interface Booking {
   id?: string
+  _id?: string
   travelId: string
   customerName: string
   customerEmail: string
@@ -12,6 +14,8 @@ interface Booking {
   passengers: number
   totalPrice: number
   status: 'pending' | 'confirmed' | 'cancelled'
+  paymentMethod?: 'efectivo' | 'tarjeta' | 'transferencia'
+  notes?: string
 }
 
 interface BookingModalProps {
@@ -20,9 +24,10 @@ interface BookingModalProps {
   booking?: Booking | null
   action: 'create' | 'edit'
   onSave: (booking: Booking) => void
+  travels?: Paquete[]
 }
 
-const BookingModal = ({ isOpen, onClose, booking, action, onSave }: BookingModalProps) => {
+const BookingModal = ({ isOpen, onClose, booking, action, onSave, travels = [] }: BookingModalProps) => {
   const {
     register,
     handleSubmit,
@@ -37,7 +42,9 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave }: BookingModal
       travelDate: '',
       passengers: 1,
       totalPrice: 0,
-      status: 'pending'
+      status: 'pending',
+      paymentMethod: 'tarjeta',
+      notes: ''
     }
   })
 
@@ -73,15 +80,20 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave }: BookingModal
           <div className="modal-body">
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">ID del Viaje *</label>
-                <input
-                  type="text"
+                <label className="form-label">Viaje *</label>
+                <select
                   className={`form-input ${errors.travelId ? 'error' : ''}`}
-                  placeholder="ID del viaje"
                   {...register('travelId', { 
-                    required: 'El ID del viaje es requerido'
+                    required: 'El viaje es requerido'
                   })}
-                />
+                >
+                  <option value="">Selecciona un viaje</option>
+                  {travels.map(travel => (
+                    <option key={travel._id} value={travel._id}>
+                      {travel.nombre} - {travel.destino}
+                    </option>
+                  ))}
+                </select>
                 {errors.travelId && (
                   <span className="error-message">{errors.travelId.message}</span>
                 )}
@@ -196,21 +208,31 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave }: BookingModal
               </div>
               
               <div className="form-group">
-                <label className="form-label">Estado *</label>
+                <label className="form-label">Método de Pago *</label>
                 <select
-                  className={`form-input ${errors.status ? 'error' : ''}`}
-                  {...register('status', { 
-                    required: 'El estado es requerido'
+                  className={`form-input ${errors.paymentMethod ? 'error' : ''}`}
+                  {...register('paymentMethod', { 
+                    required: 'El método de pago es requerido'
                   })}
                 >
-                  <option value="pending">Pendiente</option>
-                  <option value="confirmed">Confirmada</option>
-                  <option value="cancelled">Cancelada</option>
+                  <option value="efectivo">Efectivo</option>
+                  <option value="tarjeta">Tarjeta</option>
+                  <option value="transferencia">Transferencia</option>
                 </select>
-                {errors.status && (
-                  <span className="error-message">{errors.status.message}</span>
+                {errors.paymentMethod && (
+                  <span className="error-message">{errors.paymentMethod.message}</span>
                 )}
               </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Observaciones</label>
+              <textarea
+                className="form-input form-textarea"
+                placeholder="Notas adicionales sobre la reserva..."
+                rows={3}
+                {...register('notes')}
+              />
             </div>
           </div>
           
