@@ -1,5 +1,8 @@
 // API Service para comunicación con el backend
-const API_BASE_URL = 'http://localhost:4000/api';
+// La URL base se obtiene de las variables de entorno
+// En desarrollo: http://localhost:4000/api
+// En producción: configurar VITE_API_BASE_URL en el archivo .env
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api';
 
 // Interfaces para las respuestas del backend
 export interface ApiResponse<T> {
