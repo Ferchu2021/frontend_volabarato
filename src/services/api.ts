@@ -98,6 +98,36 @@ export interface LoginRequest {
   password: string;
 }
 
+// Interfaces para Suscriptores
+export interface Suscriptor {
+  _id: string;
+  nombre: string;
+  apellido: string;
+  email: string;
+  pais: string;
+  ciudad: string;
+  fechaSuscripcion: string;
+  activo: boolean;
+  fechaDesuscripcion?: string;
+}
+
+export interface CreateSuscriptorRequest {
+  nombre: string;
+  apellido: string;
+  email: string;
+  pais: string;
+  ciudad: string;
+}
+
+export interface UpdateSuscriptorRequest {
+  nombre?: string;
+  apellido?: string;
+  email?: string;
+  pais?: string;
+  ciudad?: string;
+  activo?: boolean;
+}
+
 export interface LoginResponse {
   token: string;
 }
@@ -302,6 +332,51 @@ class ApiService {
     return this.request<{ message: string }>('/user/me', {
       method: 'DELETE',
     });
+  }
+
+  // Métodos para suscriptores
+  async getSuscriptores(params?: { activo?: boolean; limit?: number; page?: number }): Promise<{ data: Suscriptor[]; pagination: any }> {
+    const queryParams = new URLSearchParams();
+    if (params?.activo !== undefined) queryParams.append('activo', params.activo.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.page) queryParams.append('page', params.page.toString());
+    
+    const endpoint = `/suscriptor${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    return this.request<{ data: Suscriptor[]; pagination: any }>(endpoint);
+  }
+
+  async getSuscriptorById(id: string): Promise<Suscriptor> {
+    return this.request<Suscriptor>(`/suscriptor/${id}`);
+  }
+
+  async createSuscriptor(data: CreateSuscriptorRequest): Promise<{ message: string; suscriptor: Suscriptor }> {
+    return this.request<{ message: string; suscriptor: Suscriptor }>('/suscriptor', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateSuscriptor(id: string, data: UpdateSuscriptorRequest): Promise<{ message: string; suscriptor: Suscriptor }> {
+    return this.request<{ message: string; suscriptor: Suscriptor }>(`/suscriptor/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async desuscribirSuscriptor(id: string): Promise<{ message: string; suscriptor: Suscriptor }> {
+    return this.request<{ message: string; suscriptor: Suscriptor }>(`/suscriptor/${id}/desuscribir`, {
+      method: 'PUT',
+    });
+  }
+
+  async deleteSuscriptor(id: string): Promise<{ message: string; suscriptor: Suscriptor }> {
+    return this.request<{ message: string; suscriptor: Suscriptor }>(`/suscriptor/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getSuscriptoresStats(): Promise<{ totalSuscriptores: number; suscriptoresActivos: number; suscriptoresInactivos: number; porPais: any[] }> {
+    return this.request('/suscriptor/stats');
   }
 }
 

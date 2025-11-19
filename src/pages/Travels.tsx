@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { FaSearch, FaFilter, FaMapMarkerAlt, FaClock, FaTag } from 'react-icons/fa'
+import { apiService } from '../services/api'
 import './Travels.css'
 
 interface Travel {
@@ -23,188 +24,39 @@ const Travels = () => {
   const [priceRange, setPriceRange] = useState({ min: 0, max: 100000 })
   const [loading, setLoading] = useState(true)
 
-  // Mock data - en un entorno real esto vendría del backend
+  // Cargar paquetes reales desde el backend
   useEffect(() => {
-    const mockTravels: Travel[] = [
-      {
-        id: '1',
-        title: 'Caribe',
-        destination: 'Caribe',
-        price: 2702,
-        currency: 'USD',
-        duration: '7 días',
-        images: [
-          '/images/caribe.jpg',
-          '/images/travel-1.jpg'
-        ],
-        description: 'Descubrí los paraísos caribeños con playas de arena blanca y aguas turquesa. Perfecto para relajarse y disfrutar del sol.',
-        category: 'Caribe'
-      },
-      {
-        id: '2',
-        title: 'Europa',
-        destination: 'Europa',
-        price: 2245,
-        currency: 'EUR',
-        duration: '10 días',
-        images: [
-          '/images/europa.png',
-          '/images/travel-2.jpg'
-        ],
-        description: 'Explorá la rica historia y cultura de Europa. Visita ciudades icónicas, monumentos históricos y disfruta de la gastronomía local.',
-        category: 'Europa'
-      },
-      {
-        id: '3',
-        title: 'Asia',
-        destination: 'Asia',
-        price: 2000,
-        currency: 'USD',
-        duration: '14 días',
-        images: [
-          '/images/asia.jpg',
-          '/images/travel-3.jpg'
-        ],
-        description: 'Sumergite en el misticismo de Asia. Desde templos antiguos hasta ciudades modernas, una experiencia cultural única.',
-        category: 'Asia'
-      },
-      {
-        id: '4',
-        title: 'África',
-        destination: 'África',
-        price: 1310,
-        currency: 'USD',
-        duration: '12 días',
-        images: [
-          '/images/africa.jpg',
-          '/images/travel-4.jpg'
-        ],
-        description: 'Viví la aventura de safari africano con observación de la fauna salvaje y paisajes increíbles.',
-        category: 'África'
-      },
-      {
-        id: '5',
-        title: 'Estados Unidos',
-        destination: 'Estados Unidos',
-        price: 638,
-        currency: 'USD',
-        duration: '10 días',
-        images: [
-          '/images/usa.png',
-          '/images/travel-1.jpg'
-        ],
-        description: 'Descubrí las ciudades más emblemáticas de Estados Unidos y sus iconos culturales.',
-        category: 'Estados Unidos'
-      },
-      {
-        id: '6',
-        title: 'Sudamérica',
-        destination: 'Sudamérica',
-        price: 859,
-        currency: 'USD',
-        duration: '8 días',
-        images: [
-          '/images/sudamerica.jpg',
-          '/images/travel-2.jpg'
-        ],
-        description: 'Conocé la diversidad de Sudamérica: paisajes andinos, selvas tropicales y ciudades vibrantes.',
-        category: 'Sudamérica'
-      },
-      {
-        id: '7',
-        title: 'Trenes',
-        destination: 'Varios destinos',
-        price: 0,
-        currency: 'USD',
-        duration: '5 días',
-        images: [
-          '/images/trenes.jpg',
-          '/images/travel-3.jpg'
-        ],
-        description: 'Viví experiencias únicas en trenes de lujo a través de paisajes espectaculares.',
-        category: 'Trenes',
-        consultPrice: true
-      },
-      {
-        id: '8',
-        title: 'Actividades',
-        destination: 'Varios destinos',
-        price: 0,
-        currency: 'USD',
-        duration: '3 días',
-        images: [
-          '/images/actividades.jpg',
-          '/images/travel-4.jpg'
-        ],
-        description: 'Disfrutá de actividades emocionantes y aventureras en destinos únicos.',
-        category: 'Actividades',
-        consultPrice: true
-      },
-      {
-        id: '9',
-        title: 'Hoteles',
-        destination: 'Varios destinos',
-        price: 0,
-        currency: 'USD',
-        duration: 'Noches a medida',
-        images: [
-          '/images/hoteles.jpg',
-          '/images/travel-1.jpg'
-        ],
-        description: 'Encontramos el alojamiento perfecto para tu viaje. Hoteles de lujo, boutique y económicos.',
-        category: 'Hoteles',
-        consultPrice: true
-      },
-      {
-        id: '10',
-        title: 'Asistencia al viajero',
-        destination: 'Global',
-        price: 0,
-        currency: 'USD',
-        duration: 'Anual',
-        images: [
-          '/images/asistenciaalviajero.jpg',
-          '/images/travel-2.jpg'
-        ],
-        description: 'Protegete durante tus viajes con nuestra cobertura de asistencia médica y de viaje internacional.',
-        category: 'Seguro al viajero',
-        consultPrice: true
-      },
-      {
-        id: '11',
-        title: 'Cruceros',
-        destination: 'Múltiples destinos',
-        price: 0,
-        currency: 'USD',
-        duration: '7 días',
-        images: [
-          '/images/crucero.jpg',
-          '/images/travel-3.jpg'
-        ],
-        description: 'Navegá por destinos espectaculares en cruceros de lujo con todas las comodidades.',
-        category: 'Cruceros',
-        consultPrice: true
-      },
-      {
-        id: '12',
-        title: 'Alquiler de autos',
-        destination: 'Varios destinos',
-        price: 0,
-        currency: 'USD',
-        duration: 'Por día',
-        images: [
-          '/images/auto.jpg',
-          '/images/travel-4.jpg'
-        ],
-        description: 'Tené libertad de movimiento con nuestros alquileres de autos en todo el mundo.',
-        category: 'Alquileres de autos',
-        consultPrice: true
+    const loadPaquetes = async () => {
+      try {
+        setLoading(true)
+        const paquetes = await apiService.getPaquetes()
+        
+        // Convertir paquetes a formato Travel
+        const travelsFromPaquetes: Travel[] = paquetes.map((paquete) => ({
+          id: paquete._id,
+          title: paquete.nombre,
+          destination: paquete.destino,
+          price: paquete.precio,
+          currency: 'ARS',
+          duration: paquete.descripcion || 'Consultar',
+          images: ['/images/travel-1.jpg'], // Por ahora una imagen, se puede mejorar
+          description: paquete.descripcion || `Descubrí ${paquete.destino} con este increíble paquete de viaje.`,
+          category: paquete.destino.split(',')[0] || 'General'
+        }))
+        
+        setTravels(travelsFromPaquetes)
+        setFilteredTravels(travelsFromPaquetes)
+        setLoading(false)
+      } catch (error) {
+        console.error('Error cargando paquetes:', error)
+        // Si no hay paquetes en el backend, mostrar mensaje
+        setTravels([])
+        setFilteredTravels([])
+        setLoading(false)
       }
-    ]
-
-    setTravels(mockTravels)
-    setFilteredTravels(mockTravels)
-    setLoading(false)
+    }
+    
+    loadPaquetes()
   }, [])
 
   useEffect(() => {

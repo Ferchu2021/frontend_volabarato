@@ -15,6 +15,11 @@ import {
   createUser, 
   updateUser
 } from '../store/slices/userSlice'
+import { 
+  fetchSubscribers,
+  deleteSubscriber,
+  Subscriber as ReduxSubscriber
+} from '../store/slices/subscriberSlice'
 import { useNavigate } from 'react-router-dom'
 import { FaSignOutAlt, FaPlus, FaEdit, FaTrash, FaEye, FaCheck, FaUsers } from 'react-icons/fa'
 import TravelModal from '../components/admin/TravelModal'
@@ -53,6 +58,7 @@ const Admin = () => {
   const navigate = useNavigate()
   const { bookings, loading, error, stats } = useAppSelector(state => state.bookings)
   const { users: adminUsers, loading: usersLoading } = useAppSelector(state => state.users)
+  const { subscribers: reduxSubscribers, loading: subscribersLoading } = useAppSelector(state => state.subscribers)
   
   const [activeTab, setActiveTab] = useState<'travels' | 'bookings' | 'subscribers' | 'users'>('bookings')
   const [showTravelModal, setShowTravelModal] = useState(false)
@@ -68,6 +74,7 @@ const Admin = () => {
     dispatch(fetchBookings({}))
     dispatch(fetchBookingStats({}))
     dispatch(fetchUsers())
+    dispatch(fetchSubscribers())
     
     // Cargar paquetes disponibles del backend
     const loadPaquetes = async () => {
@@ -129,43 +136,30 @@ const Admin = () => {
     navigate('/')
   }
 
-  // Mock data para travels y subscribers (mantener por ahora)
-  const [travels, setTravels] = useState<Travel[]>([
-    {
-      id: '1',
-      title: 'La Ruta del Helado en Rosario',
-      destination: 'Rosario, Argentina',
-      price: 15000,
-      currency: 'ARS',
-      duration: '2 días',
-      image: '/images/helado-rosario.jpg',
-      description: 'Descubrí la capital nacional del helado con un recorrido por las mejores heladerías artesanales.',
-      category: 'Gastronomía'
-    },
-    {
-      id: '2',
-      title: 'Solos y Solas',
-      destination: 'Varios destinos',
-      price: 25000,
-      currency: 'ARS',
-      duration: '3-5 días',
-      image: '/images/solos-solas.jpg',
-      description: 'Viajes diseñados especialmente para viajeros solos que quieren conocer gente nueva.',
-      category: 'Social'
-    }
-  ])
+  // Usar paquetes reales del backend (ya cargados en paquetes)
+  // Los "travels" ahora son los paquetes del backend
+  const travels = paquetes.map(p => ({
+    id: p._id,
+    title: p.nombre,
+    destination: p.destino,
+    price: p.precio,
+    currency: 'ARS',
+    duration: p.descripcion || 'Consultar',
+    image: '/images/travel-1.jpg',
+    description: p.descripcion || `Paquete de viaje a ${p.destino}`,
+    category: p.destino.split(',')[0] || 'General'
+  }))
 
-  const [subscribers, setSubscribers] = useState<Subscriber[]>([
-    {
-      id: '1',
-      firstName: 'Juan',
-      lastName: 'Pérez',
-      country: 'Argentina',
-      city: 'Buenos Aires',
-      email: 'juan@email.com',
-      subscribedAt: '2024-01-10'
-    }
-  ])
+  // Usar suscriptores de Redux (conectados con backend real)
+  const subscribers: Subscriber[] = reduxSubscribers.map(sub => ({
+    id: sub._id,
+    firstName: sub.nombre,
+    lastName: sub.apellido,
+    country: sub.pais,
+    city: sub.ciudad,
+    email: sub.email,
+    subscribedAt: sub.fechaSuscripcion
+  }))
 
   const handleCreate = () => {
     setAction('create')
@@ -193,14 +187,19 @@ const Admin = () => {
 
   const confirmDelete = () => {
     if (activeTab === 'travels') {
-      setTravels(prev => prev.filter(t => t.id !== selectedItem.id))
+      // Los travels ahora son paquetes del backend, se manejan desde TravelModal
+      // Esta funcionalidad se manejará cuando se implemente CRUD de paquetes
+      console.log('Eliminación de paquetes se maneja desde el modal')
     } else if (activeTab === 'bookings') {
       // Para reservas reales, usar la acción de Redux
       if (selectedItem._id) {
         dispatch(deleteBooking(selectedItem._id))
       }
     } else if (activeTab === 'subscribers') {
-      setSubscribers(prev => prev.filter(s => s.id !== selectedItem.id))
+      // Usar Redux para eliminar suscriptor
+      if (selectedItem.id) {
+        dispatch(deleteSubscriber(selectedItem.id))
+      }
     } else if (activeTab === 'users') {
       // Para usuarios, por ahora no permitimos eliminación (solo el usuario actual puede eliminarse)
       console.log('Eliminación de usuarios no disponible desde el admin')
@@ -222,8 +221,8 @@ const Admin = () => {
       <div className="container">
         <div className="admin-stats">
           <div className="stat-card">
-            <div className="stat-number">{travels.length}</div>
-            <div className="stat-label">Viajes Activos</div>
+            <div className="stat-number">{paquetes.length}</div>
+            <div className="stat-label">Paquetes Activos</div>
           </div>
           <div className="stat-card">
             <div className="stat-number">{stats.totalBookings}</div>
