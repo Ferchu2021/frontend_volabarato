@@ -27,10 +27,11 @@ Aplicación web completa para la agencia de turismo "Volá Barato" desarrollada 
 - **React Icons** para iconografía
 
 ### Backend
-- **localStorage** para persistencia de datos
-- **Simulación de API** con delays realistas
-- **Autenticación local** con credenciales hardcodeadas
-- **Joi** para validaciones
+- **API REST real** con Node.js y Express
+- **MongoDB Atlas** como base de datos
+- **Autenticación JWT** con tokens seguros
+- **Validación de datos** con Joi
+- **Conversión de monedas** automática
 
 ## 📱 Funcionalidades Principales
 
@@ -60,11 +61,12 @@ Aplicación web completa para la agencia de turismo "Volá Barato" desarrollada 
 ### Prerrequisitos
 - Node.js 16+ 
 - npm o yarn
+- **Backend funcionando** (ver repositorio del backend)
 
 ### 1. Clonar el repositorio
 ```bash
-git clone <url-del-repositorio>
-cd volabarato_frontend
+git clone https://github.com/Ferchu2021/frontend_volabarato.git
+cd frontend_volabarato
 ```
 
 ### 2. Instalar dependencias
@@ -72,20 +74,25 @@ cd volabarato_frontend
 npm install
 ```
 
-### 3. Configuración de Autenticación
-La aplicación incluye un usuario administrador predefinido:
+### 3. Configuración del Backend
+⚠️ **IMPORTANTE**: Este frontend requiere que el backend esté corriendo.
 
-- **Email**: `admin@volabarato.com`
-- **Password**: `admin123`
+**Backend**: https://github.com/Ferchu2021/backup_volabarato
 
-> **Nota**: Estas credenciales están hardcodeadas para demostración. En producción, deberías implementar un sistema de autenticación real.
+El backend debe estar disponible en `http://localhost:4000/api`
+
+### 4. Credenciales de Acceso
+- **Usuario**: `fernanda`
+- **Password**: `123456.a`
+
+> **Nota**: Las credenciales se validan contra el backend con JWT.
 
 ### 5. Ejecutar en desarrollo
 ```bash
 npm run dev
 ```
 
-La aplicación estará disponible en `http://localhost:3000`
+La aplicación estará disponible en `http://localhost:5173`
 
 ### 6. Construir para producción
 ```bash
@@ -161,15 +168,17 @@ La aplicación se puede desplegar en cualquier proveedor que soporte aplicacione
 - `npm run preview` - Previsualizar la build de producción
 - `npm run lint` - Ejecutar linter
 
-## 📝 Próximas Funcionalidades
+## ✅ Funcionalidades Implementadas
 
-- [x] Sistema de reservas online (localStorage)
-- [x] Panel de estadísticas básico
-- [ ] Integración con backend real
-- [ ] Base de datos en la nube
-- [ ] Notificaciones por email
-- [ ] Sistema de pagos
-- [ ] Aplicación móvil nativa
+- [x] Sistema de reservas online con backend real
+- [x] Panel de estadísticas en tiempo real
+- [x] Integración con backend REST API
+- [x] Base de datos MongoDB Atlas
+- [x] Autenticación JWT
+- [x] Conversión de monedas (ARS/USD)
+- [x] Validación de formularios
+- [x] Números de reserva automáticos
+- [x] Gestión completa de viajes, reservas y usuarios
 
 ## 🤝 Contribución
 
