@@ -13,8 +13,10 @@ import {
   FaUser,
   FaCheck,
   FaTimes,
-  FaSpinner
+  FaSpinner,
+  FaExchangeAlt
 } from 'react-icons/fa'
+import { convertCurrency, formatCurrency, CURRENCY_OPTIONS, Currency } from '../utils/currency'
 import './NuevaReserva.css'
 
 interface FormData {
@@ -38,6 +40,7 @@ const NuevaReserva: React.FC = () => {
   const [paquetes, setPaquetes] = useState<Paquete[]>([])
   const [selectedPaquete, setSelectedPaquete] = useState<Paquete | null>(null)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [selectedCurrency, setSelectedCurrency] = useState<Currency>('ARS')
   const [formData, setFormData] = useState<FormData>({
     paquete: '',
     fechaViaje: '',
@@ -118,7 +121,17 @@ const NuevaReserva: React.FC = () => {
     }
 
     try {
-      await dispatch(createBooking(formData)).unwrap()
+      // No incluir usuario, el backend lo obtiene del token JWT
+      const bookingData = {
+        paquete: formData.paquete,
+        fechaViaje: formData.fechaViaje,
+        cantidadPersonas: formData.cantidadPersonas,
+        precioTotal: formData.precioTotal,
+        metodoPago: formData.metodoPago,
+        observaciones: formData.observaciones,
+        datosContacto: formData.datosContacto
+      }
+      await dispatch(createBooking(bookingData)).unwrap()
       setShowSuccess(true)
       // Reset form
       setFormData({
@@ -140,11 +153,9 @@ const NuevaReserva: React.FC = () => {
     }
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS'
-    }).format(amount)
+  const formatPrice = (amount: number) => {
+    const converted = convertCurrency(amount, 'ARS', selectedCurrency)
+    return formatCurrency(converted, selectedCurrency)
   }
 
   const getMinDate = () => {
@@ -183,6 +194,25 @@ const NuevaReserva: React.FC = () => {
         <p>Completa los datos para hacer tu reserva</p>
       </div>
 
+      {/* Selector de moneda */}
+      <div className="currency-selector-section">
+        <label htmlFor="currency-select-reserva">
+          <FaExchangeAlt /> Moneda de visualización:
+        </label>
+        <select 
+          id="currency-select-reserva"
+          value={selectedCurrency} 
+          onChange={(e) => setSelectedCurrency(e.target.value as Currency)}
+          className="currency-select"
+        >
+          {CURRENCY_OPTIONS.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.symbol} {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <form onSubmit={handleSubmit} className="reserva-form">
         <div className="form-grid">
           {/* Selección de paquete */}
@@ -200,7 +230,7 @@ const NuevaReserva: React.FC = () => {
               <option value="">Selecciona un paquete</option>
               {paquetes.map(paquete => (
                 <option key={paquete._id} value={paquete._id}>
-                  {paquete.nombre} - {paquete.destino} ({formatCurrency(paquete.precio)})
+                  {paquete.nombre} - {paquete.destino} ({formatPrice(paquete.precio)})
                 </option>
               ))}
             </select>
@@ -328,7 +358,14 @@ const NuevaReserva: React.FC = () => {
             <div className="price-details">
               <div className="price-item">
                 <span>Precio por persona:</span>
-                <span>{formatCurrency(selectedPaquete.precio)}</span>
+                <div className="price-conversion">
+                  <span className="main-price">{formatPrice(selectedPaquete.precio)}</span>
+                  {selectedCurrency !== 'ARS' && (
+                    <span className="original-price">
+                      ({formatCurrency(selectedPaquete.precio, 'ARS')})
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="price-item">
                 <span>Cantidad de personas:</span>
@@ -336,7 +373,14 @@ const NuevaReserva: React.FC = () => {
               </div>
               <div className="price-item total">
                 <span>Total:</span>
-                <span>{formatCurrency(formData.precioTotal)}</span>
+                <div className="price-conversion">
+                  <span className="main-price">{formatPrice(formData.precioTotal)}</span>
+                  {selectedCurrency !== 'ARS' && (
+                    <span className="original-price">
+                      ({formatCurrency(formData.precioTotal, 'ARS')})
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>

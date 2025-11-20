@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react'
-import { FaSearch, FaFilter, FaMapMarkerAlt, FaClock, FaTag } from 'react-icons/fa'
+import { FaSearch, FaFilter, FaMapMarkerAlt, FaClock, FaTag, FaUsers } from 'react-icons/fa'
+import { apiService, Paquete } from '../services/api'
+import ImageGallery from '../components/common/ImageGallery'
+import Badge from '../components/common/Badge'
+import SkeletonLoader from '../components/common/SkeletonLoader'
 import './Travels.css'
 
 interface Travel {
@@ -7,10 +11,18 @@ interface Travel {
   title: string
   destination: string
   price: number
+  currency: string
   duration: string
   images: string[]
   description: string
   category: string
+  consultPrice?: boolean
+  // Nuevos campos del paquete
+  destacado?: boolean
+  precioAnterior?: number
+  cuposDisponibles?: number
+  incluye?: string[]
+  paquete?: Paquete // Referencia al paquete completo
 }
 
 const Travels = () => {
@@ -18,136 +30,163 @@ const Travels = () => {
   const [filteredTravels, setFilteredTravels] = useState<Travel[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 100000 })
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 500000 })
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // Mock data - en un entorno real esto vendría del backend
+  // Cargar paquetes reales desde el backend
   useEffect(() => {
-    const mockTravels: Travel[] = [
-      {
-        id: '1',
-        title: 'La Ruta del Helado en Rosario',
-        destination: 'Rosario, Argentina',
-        price: 15000,
-        duration: '2 días',
-        images: [
-          'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=500',
-          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500'
-        ],
-        description: 'Descubrí la capital nacional del helado con un recorrido por las mejores heladerías artesanales. Incluye degustaciones, visitas a fábricas y experiencias gastronómicas únicas.',
-        category: 'Gastronomía'
-      },
-      {
-        id: '2',
-        title: 'Solos y Solas',
-        destination: 'Varios destinos',
-        price: 25000,
-        duration: '3-5 días',
-        images: [
-          'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500',
-          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500'
-        ],
-        description: 'Viajes diseñados especialmente para viajeros solos que quieren conocer gente nueva. Grupos reducidos, actividades sociales y alojamiento compartido.',
-        category: 'Social'
-      },
-      {
-        id: '3',
-        title: 'Team Building en la Naturaleza',
-        destination: 'Sierras de Córdoba',
-        price: 18000,
-        duration: '2 días',
-        images: [
-          'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=500',
-          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500'
-        ],
-        description: 'Experiencias corporativas que fortalecen equipos y crean vínculos duraderos. Actividades outdoor, talleres de liderazgo y momentos de conexión.',
-        category: 'Corporativo'
-      },
-      {
-        id: '4',
-        title: 'Conocé Rosario, la ciudad del fútbol',
-        destination: 'Rosario, Argentina',
-        price: 12000,
-        duration: '1 día',
-        images: [
-          'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500',
-          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500'
-        ],
-        description: 'Un recorrido por la historia futbolística de la ciudad que vio nacer a Messi. Visita al Monumento a la Bandera, estadios y museos deportivos.',
-        category: 'Deportes'
-      },
-      {
-        id: '5',
-        title: 'Aventura en las Cataratas',
-        destination: 'Puerto Iguazú, Argentina',
-        price: 35000,
-        duration: '4 días',
-        images: [
-          'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=500',
-          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500'
-        ],
-        description: 'Explorá una de las maravillas naturales del mundo. Trekking, navegación por el río Iguazú y experiencias en la selva misionera.',
-        category: 'Aventura'
-      },
-      {
-        id: '6',
-        title: 'Cultura y Vinos en Mendoza',
-        destination: 'Mendoza, Argentina',
-        price: 28000,
-        duration: '3 días',
-        images: [
-          'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500',
-          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500'
-        ],
-        description: 'Recorré las mejores bodegas de la región, degustá vinos premium y disfrutá de la gastronomía local en un entorno de montaña.',
-        category: 'Cultural'
+    const loadPaquetes = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        console.log('Cargando paquetes desde:', import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api')
+        const paquetes = await apiService.getPaquetes()
+        console.log('Paquetes cargados:', paquetes)
+        
+        // Convertir paquetes a formato Travel
+        const travelsFromPaquetes: Travel[] = paquetes.map((paquete) => ({
+          id: paquete._id,
+          title: paquete.nombre,
+          destination: paquete.destino,
+          price: paquete.precio,
+          currency: 'ARS',
+          duration: paquete.duracion || paquete.descripcion || 'Consultar',
+          images: paquete.imagenes && paquete.imagenes.length > 0 
+            ? paquete.imagenes 
+            : ['/images/travel-1.jpg'], // Fallback si no hay imágenes
+          description: paquete.descripcion || `Descubrí ${paquete.destino} con este increíble paquete de viaje.`,
+          category: paquete.categoria || paquete.destino.split(',')[0] || 'General',
+          destacado: paquete.destacado,
+          precioAnterior: paquete.precioAnterior,
+          cuposDisponibles: paquete.cuposDisponibles,
+          incluye: paquete.incluye,
+          paquete: paquete // Guardar referencia completa
+        }))
+        
+        setTravels(travelsFromPaquetes)
+        setFilteredTravels(travelsFromPaquetes)
+        
+        // Ajustar rango de precio automáticamente basado en los paquetes
+        if (travelsFromPaquetes.length > 0) {
+          const maxPrice = Math.max(...travelsFromPaquetes.map(t => t.price))
+          const minPrice = Math.min(...travelsFromPaquetes.map(t => t.price))
+          setPriceRange(prev => ({
+            min: prev.min,
+            max: Math.max(prev.max, maxPrice + 50000) // Agregar margen
+          }))
+        }
+        
+        setLoading(false)
+      } catch (error: any) {
+        console.error('Error cargando paquetes:', error)
+        console.error('Error details:', {
+          message: error?.message,
+          response: error?.response,
+          status: error?.response?.status,
+          data: error?.response?.data
+        })
+        const errorMessage = error?.message || 'Error al cargar los paquetes. Verifica que el backend esté corriendo en http://localhost:4000'
+        setError(errorMessage)
+        setTravels([])
+        setFilteredTravels([])
+        setLoading(false)
       }
-    ]
-
-    setTravels(mockTravels)
-    setFilteredTravels(mockTravels)
-    setLoading(false)
+    }
+    
+    loadPaquetes()
   }, [])
 
   useEffect(() => {
     let filtered = travels
 
+    console.log('🔍 Aplicando filtros:', {
+      totalTravels: travels.length,
+      searchTerm,
+      selectedCategory,
+      priceRange
+    })
+
     // Filtro por término de búsqueda
     if (searchTerm) {
-      filtered = filtered.filter(travel =>
-        travel.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        travel.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        travel.description.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      const beforeSearch = filtered.length
+      filtered = filtered.filter(travel => {
+        const titleMatch = travel.title.toLowerCase().includes(searchTerm.toLowerCase())
+        const destMatch = travel.destination.toLowerCase().includes(searchTerm.toLowerCase())
+        const descMatch = travel.description.toLowerCase().includes(searchTerm.toLowerCase())
+        const categoryMatch = travel.category?.toLowerCase().includes(searchTerm.toLowerCase())
+        return titleMatch || destMatch || descMatch || categoryMatch
+      })
+      console.log(`🔍 Búsqueda "${searchTerm}": ${beforeSearch} -> ${filtered.length} resultados`)
     }
 
     // Filtro por categoría
     if (selectedCategory) {
+      const beforeCategory = filtered.length
       filtered = filtered.filter(travel => travel.category === selectedCategory)
+      console.log(`🏷️ Categoría "${selectedCategory}": ${beforeCategory} -> ${filtered.length} resultados`)
     }
 
     // Filtro por rango de precio
-    filtered = filtered.filter(travel => 
-      travel.price >= priceRange.min && travel.price <= priceRange.max
-    )
+    const beforePrice = filtered.length
+    filtered = filtered.filter(travel => {
+      // Si el viaje tiene precio de consulta, no aplicar filtro de precio
+      if (travel.consultPrice) {
+        return true
+      }
+      const inRange = travel.price >= priceRange.min && travel.price <= priceRange.max
+      if (!inRange) {
+        console.log(`💰 Precio fuera de rango: ${travel.title} (${travel.price}) no está en [${priceRange.min}, ${priceRange.max}]`)
+      }
+      return inRange
+    })
+    console.log(`💰 Precio [${priceRange.min}-${priceRange.max}]: ${beforePrice} -> ${filtered.length} resultados`)
 
+    console.log('✅ Resultados finales:', filtered.length)
     setFilteredTravels(filtered)
   }, [searchTerm, selectedCategory, priceRange, travels])
 
-  const categories = ['Gastronomía', 'Aventura', 'Cultural', 'Relax', 'Social', 'Corporativo', 'Deportes']
+  // Generar categorías dinámicamente desde los paquetes cargados
+  const categories = Array.from(new Set(travels.map(t => t.category).filter(Boolean))).sort()
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (price: number, currency: string) => {
     return new Intl.NumberFormat('es-AR', {
       style: 'currency',
-      currency: 'ARS'
+      currency: currency
     }).format(price)
   }
 
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Cargando viajes...</p>
+      <div className="travels-page">
+        <div className="hero-section">
+          <div className="container">
+            <SkeletonLoader height="3rem" width="300px" />
+            <SkeletonLoader height="1.5rem" width="400px" className="mt-2" />
+          </div>
+        </div>
+        <div className="container">
+          <div className="search-filters">
+            <SkeletonLoader height="3rem" />
+            <div className="filters mt-4">
+              <SkeletonLoader height="3rem" />
+              <SkeletonLoader height="3rem" />
+            </div>
+          </div>
+          <div className="travels-grid">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="travel-card">
+                <SkeletonLoader height="200px" variant="rectangular" />
+                <div className="travel-content">
+                  <SkeletonLoader height="1.5rem" width="80%" className="mb-2" />
+                  <SkeletonLoader height="1rem" width="60%" className="mb-4" />
+                  <SkeletonLoader height="1rem" />
+                  <SkeletonLoader height="1rem" width="90%" className="mt-2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     )
   }
@@ -218,53 +257,111 @@ const Travels = () => {
           </div>
         </div>
 
-        <div className="results-info">
-          <p>Mostrando {filteredTravels.length} de {travels.length} viajes</p>
-        </div>
+        {!error && (
+          <div className="results-info">
+            <p>Mostrando {filteredTravels.length} de {travels.length} viajes</p>
+          </div>
+        )}
 
-        {filteredTravels.length === 0 ? (
+        {error && (
+          <div className="no-results">
+            <h3>Error al cargar viajes</h3>
+            <p>{error}</p>
+            <p style={{ marginTop: '1rem', fontSize: '0.875rem', color: '#666' }}>
+              Verifica que el backend esté corriendo en http://localhost:4000
+            </p>
+          </div>
+        )}
+        {!error && filteredTravels.length === 0 && (
           <div className="no-results">
             <h3>No se encontraron viajes</h3>
             <p>Intenta ajustar los filtros de búsqueda</p>
           </div>
-        ) : (
+        )}
+        {!error && filteredTravels.length > 0 && (
           <div className="travels-grid">
-            {filteredTravels.map(travel => (
-              <div key={travel.id} className="travel-card">
-                <div className="travel-image">
-                  <img src={travel.images[0]} alt={travel.title} />
-                  <div className="travel-category">{travel.category}</div>
-                </div>
-                
-                <div className="travel-content">
-                  <h3 className="travel-title">{travel.title}</h3>
-                  
-                  <div className="travel-meta">
-                    <div className="meta-item">
-                      <FaMapMarkerAlt />
-                      <span>{travel.destination}</span>
+            {filteredTravels.map(travel => {
+              const hasDiscount = travel.precioAnterior && travel.precioAnterior > travel.price
+              const discountPercent = hasDiscount 
+                ? Math.round(((travel.precioAnterior! - travel.price) / travel.precioAnterior!) * 100)
+                : 0
+              const lowStock = travel.cuposDisponibles !== undefined && travel.cuposDisponibles > 0 && travel.cuposDisponibles <= 5
+              
+              return (
+                <div key={travel.id} className="travel-card">
+                  <div className="travel-image-wrapper">
+                    <ImageGallery images={travel.images} alt={travel.title} />
+                    <div className="travel-badges">
+                      {travel.destacado && (
+                        <Badge variant="warning" size="sm">Destacado</Badge>
+                      )}
+                      {hasDiscount && (
+                        <Badge variant="danger" size="sm">-{discountPercent}%</Badge>
+                      )}
+                      {lowStock && (
+                        <Badge variant="info" size="sm">Últimos {travel.cuposDisponibles} cupos</Badge>
+                      )}
                     </div>
-                    <div className="meta-item">
-                      <FaClock />
-                      <span>{travel.duration}</span>
-                    </div>
+                    <div className="travel-category">{travel.category}</div>
                   </div>
                   
-                  <p className="travel-description">{travel.description}</p>
-                  
-                  <div className="travel-footer">
-                    <div className="travel-price">
-                      <span className="price-label">Desde</span>
-                      <span className="price-amount">{formatPrice(travel.price)}</span>
+                  <div className="travel-content">
+                    <h3 className="travel-title">{travel.title}</h3>
+                    
+                    <div className="travel-meta">
+                      <div className="meta-item">
+                        <FaMapMarkerAlt />
+                        <span>{travel.destination}</span>
+                      </div>
+                      <div className="meta-item">
+                        <FaClock />
+                        <span>{travel.duration}</span>
+                      </div>
+                      {travel.cuposDisponibles !== undefined && travel.cuposDisponibles > 0 && (
+                        <div className="meta-item">
+                          <FaUsers />
+                          <span>{travel.cuposDisponibles} cupos disponibles</span>
+                        </div>
+                      )}
                     </div>
                     
-                    <button className="btn btn-primary">
-                      Ver Detalles
-                    </button>
+                    {travel.incluye && travel.incluye.length > 0 && (
+                      <div className="travel-includes">
+                        <strong>Incluye:</strong> {travel.incluye.slice(0, 3).join(', ')}
+                        {travel.incluye.length > 3 && ` +${travel.incluye.length - 3} más`}
+                      </div>
+                    )}
+                    
+                    <p className="travel-description">{travel.description}</p>
+                    
+                    <div className="travel-footer">
+                      <div className="travel-price">
+                        {travel.consultPrice ? (
+                          <span className="price-amount">Cotización a solicitud</span>
+                        ) : (
+                          <>
+                            {hasDiscount && (
+                              <span className="price-old">{formatPrice(travel.precioAnterior!, travel.currency)}</span>
+                            )}
+                            <span className="price-label">Desde</span>
+                            <span className="price-amount">{formatPrice(travel.price, travel.currency)}</span>
+                          </>
+                        )}
+                      </div>
+                      
+                      <a 
+                        href="https://web.whatsapp.com/send?phone=543412163431"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-primary"
+                      >
+                        Contactanos
+                      </a>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>

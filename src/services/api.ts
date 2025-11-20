@@ -1,5 +1,8 @@
 // API Service para comunicación con el backend
-const API_BASE_URL = 'http://localhost:4000/api';
+// La URL base se obtiene de las variables de entorno
+// En desarrollo: http://localhost:4000/api
+// En producción: configurar VITE_API_BASE_URL en el archivo .env
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api';
 
 // Interfaces para las respuestas del backend
 export interface ApiResponse<T> {
@@ -21,6 +24,7 @@ export interface PaginatedResponse<T> {
 // Interfaces para Reservas (compatible con el backend)
 export interface Reserva {
   _id: string;
+  numeroReserva: string;
   usuario: string;
   paquete: {
     _id: string;
@@ -81,6 +85,18 @@ export interface Paquete {
   precio: number;
   descripcion?: string;
   activo: boolean;
+  // Nuevos campos para información detallada
+  imagenes?: string[]; // Múltiples imágenes por paquete
+  duracion?: string; // "7 días / 6 noches"
+  fechaSalida?: string; // Fecha de salida específica
+  fechaRegreso?: string; // Fecha de regreso específica
+  incluye?: string[]; // ["Vuelos", "Hotel", "Desayuno", "Traslados"]
+  noIncluye?: string[]; // ["Almuerzos", "Propinas", "Seguro"]
+  requisitos?: string[]; // ["Pasaporte vigente", "Vacuna fiebre amarilla"]
+  categoria?: string; // "Aventura", "Playa", "Cultural", etc.
+  destacado?: boolean; // Para mostrar en home
+  cuposDisponibles?: number; // Disponibilidad real
+  precioAnterior?: number; // Para mostrar descuentos
 }
 
 // Interfaces para Usuario
@@ -92,6 +108,36 @@ export interface User {
 export interface LoginRequest {
   usuario: string;
   password: string;
+}
+
+// Interfaces para Suscriptores
+export interface Suscriptor {
+  _id: string;
+  nombre: string;
+  apellido: string;
+  email: string;
+  pais: string;
+  ciudad: string;
+  fechaSuscripcion: string;
+  activo: boolean;
+  fechaDesuscripcion?: string;
+}
+
+export interface CreateSuscriptorRequest {
+  nombre: string;
+  apellido: string;
+  email: string;
+  pais: string;
+  ciudad: string;
+}
+
+export interface UpdateSuscriptorRequest {
+  nombre?: string;
+  apellido?: string;
+  email?: string;
+  pais?: string;
+  ciudad?: string;
+  activo?: boolean;
 }
 
 export interface LoginResponse {
@@ -146,7 +192,12 @@ class ApiService {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        console.error('API Error Response:', errorData);
+        // Incluir mensaje del backend si está disponible
+        const errorMessage = errorData.message 
+          ? `${errorData.error || 'Error'}: ${errorData.message}`
+          : errorData.error || `HTTP error! status: ${response.status}`;
+        throw new Error(errorMessage);
       }
 
       return await response.json();
@@ -264,6 +315,80 @@ class ApiService {
 
   async getPaqueteById(id: string): Promise<Paquete> {
     return this.request<Paquete>(`/paquete/${id}`);
+  }
+
+  // Métodos para gestión de usuarios
+  async registerUser(data: { usuario: string; password: string }): Promise<{ message: string; user: User }> {
+    return this.request<{ message: string; user: User }>('/user/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getUsers(): Promise<User[]> {
+    return this.request<User[]>('/user');
+  }
+
+  async getUserById(id: string): Promise<User> {
+    return this.request<User>(`/user/${id}`);
+  }
+
+  async updateCurrentUser(data: Partial<{ usuario: string }>): Promise<{ message: string; user: User }> {
+    return this.request<{ message: string; user: User }>('/user/me', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteCurrentUser(): Promise<{ message: string }> {
+    return this.request<{ message: string }>('/user/me', {
+      method: 'DELETE',
+    });
+  }
+
+  // Métodos para suscriptores
+  async getSuscriptores(params?: { activo?: boolean; limit?: number; page?: number }): Promise<{ data: Suscriptor[]; pagination: any }> {
+    const queryParams = new URLSearchParams();
+    if (params?.activo !== undefined) queryParams.append('activo', params.activo.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.page) queryParams.append('page', params.page.toString());
+    
+    const endpoint = `/suscriptor${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    return this.request<{ data: Suscriptor[]; pagination: any }>(endpoint);
+  }
+
+  async getSuscriptorById(id: string): Promise<Suscriptor> {
+    return this.request<Suscriptor>(`/suscriptor/${id}`);
+  }
+
+  async createSuscriptor(data: CreateSuscriptorRequest): Promise<{ message: string; suscriptor: Suscriptor }> {
+    return this.request<{ message: string; suscriptor: Suscriptor }>('/suscriptor', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateSuscriptor(id: string, data: UpdateSuscriptorRequest): Promise<{ message: string; suscriptor: Suscriptor }> {
+    return this.request<{ message: string; suscriptor: Suscriptor }>(`/suscriptor/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async desuscribirSuscriptor(id: string): Promise<{ message: string; suscriptor: Suscriptor }> {
+    return this.request<{ message: string; suscriptor: Suscriptor }>(`/suscriptor/${id}/desuscribir`, {
+      method: 'PUT',
+    });
+  }
+
+  async deleteSuscriptor(id: string): Promise<{ message: string; suscriptor: Suscriptor }> {
+    return this.request<{ message: string; suscriptor: Suscriptor }>(`/suscriptor/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getSuscriptoresStats(): Promise<{ totalSuscriptores: number; suscriptoresActivos: number; suscriptoresInactivos: number; porPais: any[] }> {
+    return this.request('/suscriptor/stats');
   }
 }
 

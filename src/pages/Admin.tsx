@@ -3,17 +3,32 @@ import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { logoutUser } from '../store/slices/authSlice'
 import { 
   fetchBookings, 
+  createBooking,
+  updateBooking,
   updateBookingStatus, 
   deleteBooking,
   fetchBookingStats,
   Booking 
 } from '../store/slices/bookingSlice'
+import { 
+  fetchUsers, 
+  createUser, 
+  updateUser
+} from '../store/slices/userSlice'
+import { 
+  fetchSubscribers,
+  deleteSubscriber,
+  Subscriber as ReduxSubscriber
+} from '../store/slices/subscriberSlice'
 import { useNavigate } from 'react-router-dom'
-import { FaSignOutAlt, FaPlus, FaEdit, FaTrash, FaEye, FaCheck } from 'react-icons/fa'
+import { FaSignOutAlt, FaPlus, FaEdit, FaTrash, FaEye, FaCheck, FaUsers } from 'react-icons/fa'
 import TravelModal from '../components/admin/TravelModal'
 import BookingModal from '../components/admin/BookingModal'
 import SubscriberModal from '../components/admin/SubscriberModal'
+import UserModal from '../components/admin/UserModal'
 import ConfirmModal from '../components/common/ConfirmModal'
+import { apiService, Paquete } from '../services/api'
+import { convertCurrency } from '../utils/currency'
 import './Admin.css'
 
 interface Travel {
@@ -21,6 +36,7 @@ interface Travel {
   title: string
   destination: string
   price: number
+  currency?: string
   duration: string
   image: string
   description: string
@@ -41,18 +57,35 @@ const Admin = () => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { bookings, loading, error, stats } = useAppSelector(state => state.bookings)
+  const { users: adminUsers, loading: usersLoading } = useAppSelector(state => state.users)
+  const { subscribers: reduxSubscribers, loading: subscribersLoading } = useAppSelector(state => state.subscribers)
   
-  const [activeTab, setActiveTab] = useState<'travels' | 'bookings' | 'subscribers'>('bookings')
+  const [activeTab, setActiveTab] = useState<'travels' | 'bookings' | 'subscribers' | 'users'>('bookings')
   const [showTravelModal, setShowTravelModal] = useState(false)
   const [showBookingModal, setShowBookingModal] = useState(false)
   const [showSubscriberModal, setShowSubscriberModal] = useState(false)
+  const [showUserModal, setShowUserModal] = useState(false)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [selectedItem, setSelectedItem] = useState<any>(null)
   const [action, setAction] = useState<'create' | 'edit' | 'delete'>('create')
+  const [paquetes, setPaquetes] = useState<Paquete[]>([])
 
   useEffect(() => {
     dispatch(fetchBookings({}))
     dispatch(fetchBookingStats({}))
+    dispatch(fetchUsers())
+    dispatch(fetchSubscribers())
+    
+    // Cargar paquetes disponibles del backend
+    const loadPaquetes = async () => {
+      try {
+        const paquetesData = await apiService.getPaquetes()
+        setPaquetes(paquetesData)
+      } catch (error) {
+        console.error('Error al cargar paquetes:', error)
+      }
+    }
+    loadPaquetes()
   }, [dispatch])
 
   const handleStatusChange = (bookingId: string, newStatus: Booking['estado']) => {
@@ -103,41 +136,30 @@ const Admin = () => {
     navigate('/')
   }
 
-  // Mock data para travels y subscribers (mantener por ahora)
-  const [travels, setTravels] = useState<Travel[]>([
-    {
-      id: '1',
-      title: 'La Ruta del Helado en Rosario',
-      destination: 'Rosario, Argentina',
-      price: 15000,
-      duration: '2 días',
-      image: '/images/helado-rosario.jpg',
-      description: 'Descubrí la capital nacional del helado con un recorrido por las mejores heladerías artesanales.',
-      category: 'Gastronomía'
-    },
-    {
-      id: '2',
-      title: 'Solos y Solas',
-      destination: 'Varios destinos',
-      price: 25000,
-      duration: '3-5 días',
-      image: '/images/solos-solas.jpg',
-      description: 'Viajes diseñados especialmente para viajeros solos que quieren conocer gente nueva.',
-      category: 'Social'
-    }
-  ])
+  // Usar paquetes reales del backend (ya cargados en paquetes)
+  // Los "travels" ahora son los paquetes del backend
+  const travels = paquetes.map(p => ({
+    id: p._id,
+    title: p.nombre,
+    destination: p.destino,
+    price: p.precio,
+    currency: 'ARS',
+    duration: p.duracion || p.descripcion || 'Consultar',
+    image: p.imagenes && p.imagenes.length > 0 ? p.imagenes[0] : '/images/travel-1.jpg',
+    description: p.descripcion || `Paquete de viaje a ${p.destino}`,
+    category: p.categoria || p.destino.split(',')[0] || 'General'
+  }))
 
-  const [subscribers, setSubscribers] = useState<Subscriber[]>([
-    {
-      id: '1',
-      firstName: 'Juan',
-      lastName: 'Pérez',
-      country: 'Argentina',
-      city: 'Buenos Aires',
-      email: 'juan@email.com',
-      subscribedAt: '2024-01-10'
-    }
-  ])
+  // Usar suscriptores de Redux (conectados con backend real)
+  const subscribers: Subscriber[] = reduxSubscribers.map(sub => ({
+    id: sub._id,
+    firstName: sub.nombre,
+    lastName: sub.apellido,
+    country: sub.pais,
+    city: sub.ciudad,
+    email: sub.email,
+    subscribedAt: sub.fechaSuscripcion
+  }))
 
   const handleCreate = () => {
     setAction('create')
@@ -145,6 +167,7 @@ const Admin = () => {
     if (activeTab === 'travels') setShowTravelModal(true)
     else if (activeTab === 'bookings') setShowBookingModal(true)
     else if (activeTab === 'subscribers') setShowSubscriberModal(true)
+    else if (activeTab === 'users') setShowUserModal(true)
   }
 
   const handleEdit = (item: any) => {
@@ -153,6 +176,7 @@ const Admin = () => {
     if (activeTab === 'travels') setShowTravelModal(true)
     else if (activeTab === 'bookings') setShowBookingModal(true)
     else if (activeTab === 'subscribers') setShowSubscriberModal(true)
+    else if (activeTab === 'users') setShowUserModal(true)
   }
 
   const handleDelete = (item: any) => {
@@ -163,14 +187,22 @@ const Admin = () => {
 
   const confirmDelete = () => {
     if (activeTab === 'travels') {
-      setTravels(prev => prev.filter(t => t.id !== selectedItem.id))
+      // Los travels ahora son paquetes del backend, se manejan desde TravelModal
+      // Esta funcionalidad se manejará cuando se implemente CRUD de paquetes
+      console.log('Eliminación de paquetes se maneja desde el modal')
     } else if (activeTab === 'bookings') {
       // Para reservas reales, usar la acción de Redux
       if (selectedItem._id) {
         dispatch(deleteBooking(selectedItem._id))
       }
     } else if (activeTab === 'subscribers') {
-      setSubscribers(prev => prev.filter(s => s.id !== selectedItem.id))
+      // Usar Redux para eliminar suscriptor
+      if (selectedItem.id) {
+        dispatch(deleteSubscriber(selectedItem.id))
+      }
+    } else if (activeTab === 'users') {
+      // Para usuarios, por ahora no permitimos eliminación (solo el usuario actual puede eliminarse)
+      console.log('Eliminación de usuarios no disponible desde el admin')
     }
     setShowConfirmModal(false)
     setSelectedItem(null)
@@ -189,8 +221,8 @@ const Admin = () => {
       <div className="container">
         <div className="admin-stats">
           <div className="stat-card">
-            <div className="stat-number">{travels.length}</div>
-            <div className="stat-label">Viajes Activos</div>
+            <div className="stat-number">{paquetes.length}</div>
+            <div className="stat-label">Paquetes Activos</div>
           </div>
           <div className="stat-card">
             <div className="stat-number">{stats.totalBookings}</div>
@@ -226,6 +258,12 @@ const Admin = () => {
             onClick={() => setActiveTab('subscribers')}
           >
             Suscriptores
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}
+            onClick={() => setActiveTab('users')}
+          >
+            <FaUsers /> Usuarios
           </button>
         </div>
 
@@ -411,6 +449,50 @@ const Admin = () => {
               </table>
             </div>
           )}
+
+          {activeTab === 'users' && (
+            <div className="table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Usuario</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {usersLoading ? (
+                    <tr>
+                      <td colSpan={3} style={{ textAlign: 'center', padding: '2rem' }}>
+                        <div className="spinner"></div>
+                        <p>Cargando usuarios...</p>
+                      </td>
+                    </tr>
+                  ) : adminUsers.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} style={{ textAlign: 'center', padding: '2rem' }}>
+                        <p>No hay usuarios disponibles</p>
+                      </td>
+                    </tr>
+                  ) : (
+                    adminUsers.map(user => (
+                      <tr key={user._id}>
+                        <td>{user._id}</td>
+                        <td>{user.usuario}</td>
+                        <td>
+                          <div className="action-buttons">
+                            <button className="btn-icon" onClick={() => handleEdit(user)}>
+                              <FaEdit />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 
@@ -436,11 +518,83 @@ const Admin = () => {
         <BookingModal
           isOpen={showBookingModal}
           onClose={() => setShowBookingModal(false)}
-          booking={selectedItem}
+          booking={selectedItem ? {
+            _id: selectedItem._id,
+            id: selectedItem._id,
+            travelId: selectedItem.paquete?._id || selectedItem.travelId || '',
+            customerName: selectedItem.datosContacto?.nombre || selectedItem.customerName || '',
+            customerEmail: selectedItem.datosContacto?.email || selectedItem.customerEmail || '',
+            customerPhone: selectedItem.datosContacto?.telefono || selectedItem.customerPhone || '',
+            travelDate: selectedItem.fechaViaje || selectedItem.travelDate || '',
+            passengers: selectedItem.cantidadPersonas || selectedItem.passengers || 1,
+            totalPrice: selectedItem.precioTotal || selectedItem.totalPrice || 0,
+            status: (selectedItem.estado === 'pendiente' ? 'pending' : selectedItem.estado === 'confirmada' ? 'confirmed' : 'cancelled') as any,
+            paymentMethod: selectedItem.metodoPago,
+            notes: selectedItem.observaciones
+          } : null}
           action={action === 'delete' ? 'edit' : action}
-          onSave={() => {
-            // Para reservas reales, las acciones se manejan a través de Redux
-            setShowBookingModal(false)
+          travels={paquetes}
+          onSave={async (bookingData: any) => {
+            try {
+              if (action === 'create') {
+                // Mapear los datos del formulario a CreateReservaRequest
+                // Convertir el precio a ARS si la moneda seleccionada no es ARS
+                const currencyFrom = bookingData.currency || 'ARS'
+                const precioEnARS = currencyFrom === 'ARS' 
+                  ? Number(bookingData.totalPrice) 
+                  : convertCurrency(Number(bookingData.totalPrice), currencyFrom as any, 'ARS')
+                
+                const reservaData = {
+                  paquete: bookingData.travelId,
+                  fechaViaje: bookingData.travelDate,
+                  cantidadPersonas: Number(bookingData.passengers),
+                  precioTotal: precioEnARS,
+                  metodoPago: bookingData.paymentMethod || 'tarjeta',
+                  observaciones: bookingData.notes || '',
+                  datosContacto: {
+                    nombre: bookingData.customerName,
+                    email: bookingData.customerEmail,
+                    telefono: bookingData.customerPhone
+                  }
+                }
+                console.log('Datos de la reserva que se enviarán:', reservaData)
+                const result = await dispatch(createBooking(reservaData))
+                if (createBooking.rejected.match(result)) {
+                  console.error('Error al crear reserva:', result.payload)
+                  alert('Error al crear la reserva: ' + (result.payload || 'Error desconocido'))
+                  return
+                }
+                console.log('Reserva creada exitosamente:', result.payload)
+                await dispatch(fetchBookings({}))
+                await dispatch(fetchBookingStats({}))
+              } else if (action === 'edit') {
+                // Mapear para actualización
+                // Convertir el precio a ARS si la moneda seleccionada no es ARS
+                const currencyFrom = bookingData.currency || 'ARS'
+                const precioEnARS = currencyFrom === 'ARS' 
+                  ? Number(bookingData.totalPrice) 
+                  : convertCurrency(Number(bookingData.totalPrice), currencyFrom as any, 'ARS')
+                
+                const updateData = {
+                  fechaViaje: bookingData.travelDate,
+                  cantidadPersonas: Number(bookingData.passengers),
+                  precioTotal: precioEnARS,
+                  metodoPago: bookingData.paymentMethod || 'tarjeta',
+                  observaciones: bookingData.notes || '',
+                  datosContacto: {
+                    nombre: bookingData.customerName,
+                    email: bookingData.customerEmail,
+                    telefono: bookingData.customerPhone
+                  }
+                }
+                await dispatch(updateBooking({ id: selectedItem._id || selectedItem.id, data: updateData }))
+                await dispatch(fetchBookings({}))
+                await dispatch(fetchBookingStats({}))
+              }
+              setShowBookingModal(false)
+            } catch (error) {
+              console.error('Error al guardar la reserva:', error)
+            }
           }}
         />
       )}
@@ -465,6 +619,28 @@ const Admin = () => {
               ))
             }
             setShowSubscriberModal(false)
+          }}
+        />
+      )}
+
+      {showUserModal && (
+        <UserModal
+          isOpen={showUserModal}
+          onClose={() => setShowUserModal(false)}
+          user={selectedItem}
+          action={action === 'delete' ? 'edit' : action}
+          onSave={async (userData: any) => {
+            try {
+              if (action === 'create') {
+                await dispatch(createUser(userData)).unwrap()
+                await dispatch(fetchUsers())
+              } else if (action === 'edit') {
+                await dispatch(updateUser(userData)).unwrap()
+                await dispatch(fetchUsers())
+              }
+            } catch (error) {
+              console.error('Error guardando usuario:', error)
+            }
           }}
         />
       )}

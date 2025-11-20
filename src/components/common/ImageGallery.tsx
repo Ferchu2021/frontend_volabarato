@@ -1,129 +1,138 @@
-import React, { useState } from 'react'
-import { FiX, FiChevronLeft, FiChevronRight, FiZoomIn } from 'react-icons/fi'
+import { useState } from 'react'
+import { FaChevronLeft, FaChevronRight, FaTimes } from 'react-icons/fa'
 import './ImageGallery.css'
 
 interface ImageGalleryProps {
   images: string[]
-  onImageRemove?: (index: number) => void
-  editable?: boolean
-  maxImages?: number
-  className?: string
+  alt?: string
+  showThumbnails?: boolean
 }
 
-const ImageGallery: React.FC<ImageGalleryProps> = ({
-  images,
-  onImageRemove,
-  editable = false,
-  //maxImages = 10,
-  className = ''
-}) => {
-  const [selectedImage, setSelectedImage] = useState<number | null>(null)
+const ImageGallery = ({ images, alt = 'Imagen', showThumbnails = false }: ImageGalleryProps) => {
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false)
 
-  const openLightbox = (index: number) => {
-    setSelectedImage(index)
-  }
-
-  const closeLightbox = () => {
-    setSelectedImage(null)
-  }
-
-  const nextImage = () => {
-    if (selectedImage !== null) {
-      setSelectedImage((selectedImage + 1) % images.length)
-    }
-  }
-
-  const prevImage = () => {
-    if (selectedImage !== null) {
-      setSelectedImage(selectedImage === 0 ? images.length - 1 : selectedImage - 1)
-    }
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      closeLightbox()
-    } else if (e.key === 'ArrowRight') {
-      nextImage()
-    } else if (e.key === 'ArrowLeft') {
-      prevImage()
-    }
-  }
-
-  if (images.length === 0) {
+  if (!images || images.length === 0) {
     return (
-      <div className={`image-gallery empty ${className}`}>
-        <p>No hay imágenes disponibles</p>
+      <div className="image-gallery-empty">
+        <img src="/images/travel-1.jpg" alt={alt} />
       </div>
     )
   }
 
+  const nextImage = () => {
+    setCurrentIndex((prev) => (prev + 1) % images.length)
+  }
+
+  const prevImage = () => {
+    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
+  }
+
+  const openLightbox = () => {
+    if (images.length > 1) {
+      setIsLightboxOpen(true)
+    }
+  }
+
+  const closeLightbox = () => {
+    setIsLightboxOpen(false)
+  }
+
   return (
     <>
-      <div className={`image-gallery ${className}`}>
-        {images.map((image, index) => (
-          <div key={index} className="image-gallery__item">
-            <div className="image-gallery__image-container">
-              <img
-                src={image}
-                alt={`Imagen ${index + 1}`}
-                onClick={() => openLightbox(index)}
-                className="image-gallery__image"
-              />
-              
-              <div className="image-gallery__overlay">
-                <button
-                  className="image-gallery__zoom-btn"
-                  onClick={() => openLightbox(index)}
-                  title="Ampliar imagen"
-                >
-                  <FiZoomIn />
-                </button>
-                
-                {editable && onImageRemove && (
-                  <button
-                    className="image-gallery__remove-btn"
-                    onClick={() => onImageRemove(index)}
-                    title="Eliminar imagen"
-                  >
-                    <FiX />
-                  </button>
-                )}
+      <div className="image-gallery">
+        <div className="image-gallery-main" onClick={openLightbox}>
+          <img 
+            src={images[currentIndex]} 
+            alt={`${alt} ${currentIndex + 1}`}
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/images/travel-1.jpg'
+            }}
+          />
+          {images.length > 1 && (
+            <>
+              <button 
+                className="gallery-nav gallery-nav-prev" 
+                onClick={(e) => {
+                  e.stopPropagation()
+                  prevImage()
+                }}
+                aria-label="Imagen anterior"
+              >
+                <FaChevronLeft />
+              </button>
+              <button 
+                className="gallery-nav gallery-nav-next" 
+                onClick={(e) => {
+                  e.stopPropagation()
+                  nextImage()
+                }}
+                aria-label="Siguiente imagen"
+              >
+                <FaChevronRight />
+              </button>
+              <div className="gallery-indicator">
+                {currentIndex + 1} / {images.length}
               </div>
-            </div>
+            </>
+          )}
+        </div>
+        
+        {showThumbnails && images.length > 1 && (
+          <div className="image-gallery-thumbnails">
+            {images.map((image, index) => (
+              <button
+                key={index}
+                className={`thumbnail ${index === currentIndex ? 'active' : ''}`}
+                onClick={() => setCurrentIndex(index)}
+              >
+                <img 
+                  src={image} 
+                  alt={`${alt} thumbnail ${index + 1}`}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/images/travel-1.jpg'
+                  }}
+                />
+              </button>
+            ))}
           </div>
-        ))}
+        )}
       </div>
 
-      {/* Lightbox */}
-      {selectedImage !== null && (
-        <div
-          className="image-gallery__lightbox"
-          onClick={closeLightbox}
-          onKeyDown={handleKeyDown}
-          tabIndex={0}
-        >
-          <div className="image-gallery__lightbox-content" onClick={(e) => e.stopPropagation()}>
-            <button className="image-gallery__lightbox-close" onClick={closeLightbox}>
-              <FiX />
-            </button>
-            
-            <button className="image-gallery__lightbox-nav image-gallery__lightbox-prev" onClick={prevImage}>
-              <FiChevronLeft />
-            </button>
-            
-            <button className="image-gallery__lightbox-nav image-gallery__lightbox-next" onClick={nextImage}>
-              <FiChevronRight />
-            </button>
-            
-            <img
-              src={images[selectedImage]}
-              alt={`Imagen ${selectedImage + 1}`}
-              className="image-gallery__lightbox-image"
+      {isLightboxOpen && (
+        <div className="lightbox" onClick={closeLightbox}>
+          <button className="lightbox-close" onClick={closeLightbox} aria-label="Cerrar">
+            <FaTimes />
+          </button>
+          <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+            <img 
+              src={images[currentIndex]} 
+              alt={`${alt} ${currentIndex + 1}`}
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/images/travel-1.jpg'
+              }}
             />
-            
-            <div className="image-gallery__lightbox-counter">
-              {selectedImage + 1} / {images.length}
-            </div>
+            {images.length > 1 && (
+              <>
+                <button 
+                  className="lightbox-nav lightbox-nav-prev" 
+                  onClick={prevImage}
+                  aria-label="Imagen anterior"
+                >
+                  <FaChevronLeft />
+                </button>
+                <button 
+                  className="lightbox-nav lightbox-nav-next" 
+                  onClick={nextImage}
+                  aria-label="Siguiente imagen"
+                >
+                  <FaChevronRight />
+                </button>
+                <div className="lightbox-indicator">
+                  {currentIndex + 1} / {images.length}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

@@ -11,9 +11,6 @@ const Navbar = () => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
 
-  // Logo image - puedes cambiar esta URL por tu logo
-  const logoImage = '/images/logo-transparent.svg' // Logo transparente optimizado
-
   const handleLogout = async () => {
     await dispatch(logoutUser())
     navigate('/')
@@ -28,7 +25,12 @@ const Navbar = () => {
     <nav className="navbar">
       <div className="container">
         <Link to="/" className="navbar-brand">
-          <img src={logoImage} alt="Logo" className="navbar-logo" />
+          <img
+            src="/images/logo1.jpeg"
+            alt="Volá Barato"
+            className="navbar-logo"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+          />
         </Link>
 
         <div className={`navbar-menu ${isMenuOpen ? 'active' : ''}`}>

@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { FaTimes, FaSave } from 'react-icons/fa'
+import ImageUpload from '../common/ImageUpload'
 import './TravelModal.css'
 
 interface Travel {
@@ -7,6 +9,7 @@ interface Travel {
   title: string
   destination: string
   price: number
+  currency?: string
   duration: string
   image: string
   description: string
@@ -22,35 +25,70 @@ interface TravelModalProps {
 }
 
 const TravelModal = ({ isOpen, onClose, travel, action, onSave }: TravelModalProps) => {
+  const [imageData, setImageData] = useState<string>('')
+  const [imageError, setImageError] = useState<string>('')
+  
   const {
     register,
     handleSubmit,
     formState: { errors },
-    reset
+    reset,
+    setValue
   } = useForm<Travel>({
     defaultValues: travel || {
       title: '',
       destination: '',
       price: 0,
+      currency: 'ARS',
       duration: '',
       image: '',
       description: '',
       category: ''
     }
   })
+  
+  // Actualizar imageData cuando cambie travel
+  useEffect(() => {
+    if (travel?.image) {
+      setImageData(travel.image)
+      setImageError('')
+    } else if (!travel && action === 'create') {
+      setImageData('')
+      setImageError('')
+    }
+  }, [travel, action])
 
   const onSubmit = (data: Travel) => {
+    // Validar que haya imagen
+    if (!imageData && !data.image) {
+      setImageError('La imagen es requerida')
+      return
+    }
+    
+    setImageError('')
+    
     const travelData = {
       ...data,
       id: travel?.id || Date.now().toString(),
-      price: Number(data.price)
+      price: Number(data.price),
+      image: imageData || data.image
     }
     onSave(travelData)
     reset()
+    setImageData('')
+    setImageError('')
   }
-
+  
+  const handleImageSelect = (image: string) => {
+    setImageData(image)
+    setImageError('')
+    setValue('image', image, { shouldValidate: false })
+  }
+  
   const handleClose = () => {
     reset()
+    setImageData('')
+    setImageError('')
     onClose()
   }
 
@@ -104,19 +142,34 @@ const TravelModal = ({ isOpen, onClose, travel, action, onSave }: TravelModalPro
 
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">Precio (ARS) *</label>
-                <input
-                  type="number"
-                  className={`form-input ${errors.price ? 'error' : ''}`}
-                  placeholder="0"
-                  min="0"
-                  {...register('price', { 
-                    required: 'El precio es requerido',
-                    min: { value: 0, message: 'El precio debe ser mayor a 0' }
-                  })}
-                />
+                <label className="form-label">Precio *</label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className={`form-input ${errors.price ? 'error' : ''}`}
+                    placeholder="0.00"
+                    min="0"
+                    style={{ flex: '1' }}
+                    {...register('price', { 
+                      required: 'El precio es requerido',
+                      min: { value: 0.01, message: 'El precio debe ser mayor a 0' }
+                    })}
+                  />
+                  <select
+                    className={`form-input ${errors.currency ? 'error' : ''}`}
+                    style={{ width: '120px' }}
+                    {...register('currency', { required: 'La moneda es requerida' })}
+                  >
+                    <option value="ARS">ARS</option>
+                    <option value="USD">USD</option>
+                  </select>
+                </div>
                 {errors.price && (
                   <span className="error-message">{errors.price.message}</span>
+                )}
+                {errors.currency && (
+                  <span className="error-message">{errors.currency.message}</span>
                 )}
               </div>
               
@@ -138,21 +191,15 @@ const TravelModal = ({ isOpen, onClose, travel, action, onSave }: TravelModalPro
             </div>
 
             <div className="form-group">
-              <label className="form-label">URL de la imagen *</label>
-              <input
-                type="url"
-                className={`form-input ${errors.image ? 'error' : ''}`}
-                placeholder="https://ejemplo.com/imagen.jpg"
-                {...register('image', { 
-                  required: 'La URL de la imagen es requerida',
-                  pattern: {
-                    value: /^https?:\/\/.+/,
-                    message: 'Ingresa una URL válida'
-                  }
-                })}
+              <ImageUpload
+                label="Imagen *"
+                onImageSelect={handleImageSelect}
+                currentImage={imageData || travel?.image}
+                required={true}
+                maxSize={10}
               />
-              {errors.image && (
-                <span className="error-message">{errors.image.message}</span>
+              {imageError && (
+                <span className="error-message" style={{ marginTop: '8px', display: 'block' }}>{imageError}</span>
               )}
             </div>
 
@@ -165,13 +212,18 @@ const TravelModal = ({ isOpen, onClose, travel, action, onSave }: TravelModalPro
                 })}
               >
                 <option value="">Selecciona una categoría</option>
-                <option value="Gastronomía">Gastronomía</option>
-                <option value="Aventura">Aventura</option>
-                <option value="Cultural">Cultural</option>
-                <option value="Relax">Relax</option>
-                <option value="Social">Social</option>
-                <option value="Corporativo">Corporativo</option>
-                <option value="Deportes">Deportes</option>
+                <option value="Caribe">Caribe</option>
+                <option value="Europa">Europa</option>
+                <option value="Estados Unidos">Estados Unidos</option>
+                <option value="Sudamérica">Sudamérica</option>
+                <option value="Asia">Asia</option>
+                <option value="África">África</option>
+                <option value="Cruceros">Cruceros</option>
+                <option value="Hoteles">Hoteles</option>
+                <option value="Actividades">Actividades</option>
+                <option value="Trenes">Trenes</option>
+                <option value="Alquileres de autos">Alquileres de autos</option>
+                <option value="Seguro al viajero">Seguro al viajero</option>
               </select>
               {errors.category && (
                 <span className="error-message">{errors.category.message}</span>

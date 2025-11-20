@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useAppDispatch } from '../../store/hooks'
+import { addSubscriber } from '../../store/slices/subscriberSlice'
 import { FaPaperPlane, FaCheck } from 'react-icons/fa'
 import './NewsletterForm.css'
 
@@ -12,8 +14,10 @@ interface NewsletterFormData {
 }
 
 const NewsletterForm = () => {
+  const dispatch = useAppDispatch()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   
   const {
     register,
@@ -24,27 +28,17 @@ const NewsletterForm = () => {
 
   const onSubmit = async (data: NewsletterFormData) => {
     setIsSubmitting(true)
+    setError(null)
     
     try {
-      // Aquí se enviaría la información al backend
-      // Por ahora simulamos el envío
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Enviar notificación por email
-      const emailBody = `
-        Nueva suscripción a newsletter:
-        
-        Nombre: ${data.firstName} ${data.lastName}
-        País: ${data.country}
-        Localidad: ${data.city}
-        Email: ${data.email}
-        
-        Fecha: ${new Date().toLocaleDateString('es-AR')}
-      `
-      
-      // En un entorno real, esto se enviaría al backend
-      console.log('Datos del formulario:', data)
-      console.log('Email a enviar:', emailBody)
+      // Enviar al backend real usando Redux
+      await dispatch(addSubscriber({
+        nombre: data.firstName,
+        apellido: data.lastName,
+        email: data.email,
+        pais: data.country,
+        ciudad: data.city
+      })).unwrap()
       
       setIsSubmitted(true)
       reset()
@@ -54,8 +48,9 @@ const NewsletterForm = () => {
         setIsSubmitted(false)
       }, 3000)
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al enviar el formulario:', error)
+      setError(error || 'Error al suscribirse. Por favor, intenta nuevamente.')
     } finally {
       setIsSubmitting(false)
     }
@@ -154,6 +149,12 @@ const NewsletterForm = () => {
           <span className="error-message">{errors.email.message}</span>
         )}
       </div>
+      
+      {error && (
+        <div className="error-message" style={{ marginBottom: '1rem', color: '#e74c3c' }}>
+          {error}
+        </div>
+      )}
       
       <button 
         type="submit" 

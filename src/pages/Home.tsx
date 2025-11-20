@@ -1,31 +1,35 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { FaPlane, FaMapMarkedAlt, FaHeart, FaStar } from 'react-icons/fa'
+import { apiService, Paquete } from '../services/api'
+import ImageGallery from '../components/common/ImageGallery'
 import NewsletterForm from '../components/forms/NewsletterForm'
 import './Home.css'
 
 const Home = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [destacados, setDestacados] = useState<Paquete[]>([])
+  const [loadingDestacados, setLoadingDestacados] = useState(true)
 
   const carouselImages = [
     {
-      src: '/images/travel-1.jpg',
-      alt: 'Destino turístico paradisíaco',
+      src: '/images/mikonos.png',
+      alt: 'Descubrí Destinos Únicos',
       title: 'Descubrí Destinos Únicos'
     },
     {
-      src: '/images/travel-2.jpg',
-      alt: 'Experiencia de viaje inolvidable',
+      src: '/images/safari.png',
+      alt: 'Viví Experiencias Inolvidables',
       title: 'Viví Experiencias Inolvidables'
     },
     {
-      src: '/images/travel-3.jpg',
-      alt: 'Aventura y exploración',
+      src: '/images/Honolulu.png',
+      alt: 'Aventuras que Inspiran',
       title: 'Aventuras que Inspiran'
     },
     {
-      src: '/images/travel-4.jpg',
-      alt: 'Cultura y tradiciones',
+      src: '/images/egipto.png',
+      alt: 'Sumergite en Nuevas Culturas',
       title: 'Sumergite en Nuevas Culturas'
     }
   ]
@@ -37,6 +41,27 @@ const Home = () => {
 
     return () => clearInterval(interval)
   }, [carouselImages.length])
+
+  // Cargar paquetes destacados del backend
+  useEffect(() => {
+    const loadDestacados = async () => {
+      try {
+        setLoadingDestacados(true)
+        const paquetes = await apiService.getPaquetes()
+        // Filtrar solo los paquetes destacados y activos
+        const destacadosData = paquetes.filter(p => p.destacado && p.activo)
+        // Limitar a 4 para mostrar en el grid
+        setDestacados(destacadosData.slice(0, 4))
+      } catch (error) {
+        console.error('Error cargando paquetes destacados:', error)
+        setDestacados([])
+      } finally {
+        setLoadingDestacados(false)
+      }
+    }
+    
+    loadDestacados()
+  }, [])
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % carouselImages.length)
@@ -159,48 +184,81 @@ const Home = () => {
           <p className="section-subtitle">
             Preparate para vivir experiencias únicas en los próximos meses
           </p>
-          <div className="proposals-grid">
-            <div className="proposal-card">
-              <div className="proposal-image">
-                <img src="/images/helado-rosario.jpg" alt="La Ruta del Helado en Rosario" />
-              </div>
-              <div className="proposal-content">
-                <h3>La Ruta del Helado en Rosario</h3>
-                <p>Descubrí la capital nacional del helado con un recorrido por las mejores heladerías artesanales.</p>
-                <span className="proposal-tag">Gastronomía</span>
-              </div>
+          {loadingDestacados ? (
+            <div style={{ textAlign: 'center', padding: '2rem' }}>
+              <p>Cargando propuestas destacadas...</p>
             </div>
-            <div className="proposal-card">
-              <div className="proposal-image">
-                <img src="/images/solos-solas.jpg" alt="Solos y Solas" />
-              </div>
-              <div className="proposal-content">
-                <h3>Solos y Solas</h3>
-                <p>Viajes diseñados especialmente para viajeros solos que quieren conocer gente nueva.</p>
-                <span className="proposal-tag">Social</span>
-              </div>
+          ) : destacados.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2rem' }}>
+              <p>No hay propuestas destacadas disponibles en este momento.</p>
             </div>
-            <div className="proposal-card">
-              <div className="proposal-image">
-                <img src="/images/team-building.jpg" alt="Team Building" />
-              </div>
-              <div className="proposal-content">
-                <h3>Team Building</h3>
-                <p>Experiencias corporativas que fortalecen equipos y crean vínculos duraderos.</p>
-                <span className="proposal-tag">Corporativo</span>
-              </div>
+          ) : (
+            <div className="proposals-grid">
+              {destacados.map((paquete) => {
+                const hasDiscount = paquete.precioAnterior && paquete.precioAnterior > paquete.precio
+                const discountPercent = hasDiscount 
+                  ? Math.round(((paquete.precioAnterior! - paquete.precio) / paquete.precioAnterior!) * 100)
+                  : 0
+                
+                return (
+                  <Link 
+                    key={paquete._id} 
+                    to="/viajes" 
+                    className="proposal-card"
+                    style={{ textDecoration: 'none', color: 'inherit' }}
+                  >
+                    <div className="proposal-image">
+                      {paquete.imagenes && paquete.imagenes.length > 0 ? (
+                        <img 
+                          src={paquete.imagenes[0]} 
+                          alt={paquete.nombre}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/images/travel-1.jpg'
+                          }}
+                        />
+                      ) : (
+                        <img src="/images/travel-1.jpg" alt={paquete.nombre} />
+                      )}
+                      {hasDiscount && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '0.5rem',
+                          right: '0.5rem',
+                          background: '#ef4444',
+                          color: 'white',
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '1rem',
+                          fontSize: '0.75rem',
+                          fontWeight: '600'
+                        }}>
+                          -{discountPercent}%
+                        </div>
+                      )}
+                    </div>
+                    <div className="proposal-content">
+                      <h3>{paquete.nombre}</h3>
+                      <p>{paquete.descripcion || `Descubrí ${paquete.destino} con este increíble paquete de viaje.`}</p>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+                        <span className="proposal-tag">{paquete.categoria || 'General'}</span>
+                        {paquete.precio && (
+                          <span style={{ 
+                            fontWeight: '600', 
+                            color: 'var(--primary-color, #2563eb)',
+                            fontSize: '1.125rem'
+                          }}>
+                            Desde {new Intl.NumberFormat('es-AR', {
+                              style: 'currency',
+                              currency: 'ARS'
+                            }).format(paquete.precio)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
             </div>
-            <div className="proposal-card">
-              <div className="proposal-image">
-                <img src="/images/rosario-futbol.jpg" alt="Conocé Rosario, la ciudad del fútbol" />
-              </div>
-              <div className="proposal-content">
-                <h3>Conocé Rosario, la ciudad del fútbol</h3>
-                <p>Un recorrido por la historia futbolística de la ciudad que vio nacer a Messi.</p>
-                <span className="proposal-tag">Deportes</span>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       </section>
 

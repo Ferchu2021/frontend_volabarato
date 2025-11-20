@@ -6,7 +6,9 @@
 
 /* Hero Section */
 .hero {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  background: url('/images/Fondo1.png') center/cover no-repeat;
+  background-size: cover;
+  background-position: center;
   color: white;
   padding: 6rem 0;
   text-align: center;
@@ -21,8 +23,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: url('/images/hero-bg.jpg') center/cover;
-  opacity: 0.1;
+  background: rgba(0, 0, 0, 0.3); /* Overlay oscuro para mejorar legibilidad del texto */
   z-index: 1;
 }
 
@@ -91,7 +92,27 @@
 
 /* Features Section */
 .features {
-  background: var(--background-secondary);
+  background-image: url('/images/nieve.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+.features::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.7);
+  z-index: 1;
+}
+
+.features .container {
+  position: relative;
+  z-index: 2;
 }
 
 .features-grid {
@@ -120,12 +141,7 @@
 }
 
 /* Newsletter Section */
-.newsletter {
-  background: linear-gradient(135deg, var(--secondary-color) 0%, var(--accent-color) 100%);
-  color: white;
-  text-align: center;
-  padding: 4rem 0;
-}
+/* Background moved to Home.css to allow image background */
 
 .newsletter-form {
   max-width: 500px;

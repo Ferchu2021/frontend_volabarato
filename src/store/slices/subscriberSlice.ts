@@ -1,13 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { apiService, Suscriptor, CreateSuscriptorRequest, UpdateSuscriptorRequest } from '../../services/api'
 
-export interface Subscriber {
-  id: string
-  email: string
-  name: string
-  isActive: boolean
-  subscribedAt: string
-  unsubscribedAt?: string
-}
+// Usar la interfaz del backend
+export type Subscriber = Suscriptor
 
 interface SubscriberState {
   subscribers: Subscriber[]
@@ -15,6 +10,12 @@ interface SubscriberState {
   error: string | null
   totalSubscribers: number
   activeSubscribers: number
+  stats: {
+    totalSuscriptores: number
+    suscriptoresActivos: number
+    suscriptoresInactivos: number
+    porPais: any[]
+  } | null
 }
 
 const initialState: SubscriberState = {
@@ -23,99 +24,79 @@ const initialState: SubscriberState = {
   error: null,
   totalSubscribers: 0,
   activeSubscribers: 0,
+  stats: null,
 }
 
-// Async thunks
+// Async thunks - Conectados con el backend real
 export const fetchSubscribers = createAsyncThunk(
   'subscribers/fetchSubscribers',
-  async () => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 600))
-    
-    // Get from localStorage or return mock data
-    const stored = localStorage.getItem('subscribers')
-    if (stored) {
-      return JSON.parse(stored)
+  async (params?: { activo?: boolean; limit?: number; page?: number }, { rejectWithValue }) => {
+    try {
+      const response = await apiService.getSuscriptores(params)
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Error al cargar suscriptores')
     }
-    
-    // Return mock data for demo
-    return [
-      {
-        id: '1',
-        email: 'maria@email.com',
-        name: 'María González',
-        isActive: true,
-        subscribedAt: '2024-01-10T10:00:00Z'
-      },
-      {
-        id: '2',
-        email: 'juan@email.com',
-        name: 'Juan Pérez',
-        isActive: true,
-        subscribedAt: '2024-01-12T14:30:00Z'
-      }
-    ]
   }
 )
 
 export const addSubscriber = createAsyncThunk(
   'subscribers/addSubscriber',
-  async (subscriberData: { email: string; name: string }) => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 800))
-    
-    const newSubscriber: Subscriber = {
-      ...subscriberData,
-      id: Date.now().toString(),
-      isActive: true,
-      subscribedAt: new Date().toISOString()
+  async (subscriberData: CreateSuscriptorRequest, { rejectWithValue }) => {
+    try {
+      const response = await apiService.createSuscriptor(subscriberData)
+      return response.suscriptor
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Error al agregar suscriptor')
     }
-    
-    // Save to localStorage
-    const stored = localStorage.getItem('subscribers')
-    const subscribers = stored ? JSON.parse(stored) : []
-    subscribers.push(newSubscriber)
-    localStorage.setItem('subscribers', JSON.stringify(subscribers))
-    
-    return newSubscriber
+  }
+)
+
+export const updateSubscriber = createAsyncThunk(
+  'subscribers/updateSubscriber',
+  async ({ id, data }: { id: string; data: UpdateSuscriptorRequest }, { rejectWithValue }) => {
+    try {
+      const response = await apiService.updateSuscriptor(id, data)
+      return response.suscriptor
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Error al actualizar suscriptor')
+    }
   }
 )
 
 export const unsubscribeSubscriber = createAsyncThunk(
   'subscribers/unsubscribeSubscriber',
-  async (email: string) => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 600))
-    
-    // Update in localStorage
-    const stored = localStorage.getItem('subscribers')
-    const subscribers = stored ? JSON.parse(stored) : []
-    const subscriber = subscribers.find((s: Subscriber) => s.email === email)
-    
-    if (subscriber) {
-      subscriber.isActive = false
-      subscriber.unsubscribedAt = new Date().toISOString()
-      localStorage.setItem('subscribers', JSON.stringify(subscribers))
-      return subscriber
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await apiService.desuscribirSuscriptor(id)
+      return response.suscriptor
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Error al desuscribir')
     }
-    
-    throw new Error('Subscriber not found')
   }
 )
 
 export const deleteSubscriber = createAsyncThunk(
   'subscribers/deleteSubscriber',
-  async (id: string) => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 600))
-    
-    // Remove from localStorage
-    const stored = localStorage.getItem('subscribers')
-    const subscribers = stored ? JSON.parse(stored) : []
-    const filtered = subscribers.filter((s: Subscriber) => s.id !== id)
-    localStorage.setItem('subscribers', JSON.stringify(filtered))
-    
-    return id
+  async (id: string, { rejectWithValue }) => {
+    try {
+      await apiService.deleteSuscriptor(id)
+      return id
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Error al eliminar suscriptor')
+    }
+  }
+)
+
+export const fetchSubscriberStats = createAsyncThunk(
+  'subscribers/fetchStats',
+  async (_, { rejectWithValue }) => {
+    try {
+      const stats = await apiService.getSuscriptoresStats()
+      return stats
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Error al cargar estadísticas')
+    }
   }
 )
 
@@ -128,7 +109,7 @@ const subscriberSlice = createSlice({
     },
     updateSubscriberStats: (state) => {
       state.totalSubscribers = state.subscribers.length
-      state.activeSubscribers = state.subscribers.filter(sub => sub.isActive).length
+      state.activeSubscribers = state.subscribers.filter(sub => sub.activo).length
     },
   },
   extraReducers: (builder) => {
@@ -142,11 +123,11 @@ const subscriberSlice = createSlice({
         state.loading = false
         state.subscribers = action.payload
         state.totalSubscribers = action.payload.length
-        state.activeSubscribers = action.payload.filter((sub: Subscriber) => sub.isActive).length
+        state.activeSubscribers = action.payload.filter((sub: Subscriber) => sub.activo).length
       })
       .addCase(fetchSubscribers.rejected, (state, action) => {
         state.loading = false
-        state.error = action.error.message || 'Failed to fetch subscribers'
+        state.error = action.payload as string || 'Failed to fetch subscribers'
       })
       // Add subscriber
       .addCase(addSubscriber.pending, (state) => {
@@ -157,11 +138,36 @@ const subscriberSlice = createSlice({
         state.loading = false
         state.subscribers.push(action.payload)
         state.totalSubscribers += 1
-        state.activeSubscribers += 1
+        if (action.payload.activo) {
+          state.activeSubscribers += 1
+        }
       })
       .addCase(addSubscriber.rejected, (state, action) => {
         state.loading = false
-        state.error = action.error.message || 'Failed to add subscriber'
+        state.error = action.payload as string || 'Failed to add subscriber'
+      })
+      // Update subscriber
+      .addCase(updateSubscriber.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(updateSubscriber.fulfilled, (state, action) => {
+        state.loading = false
+        const index = state.subscribers.findIndex(sub => sub._id === action.payload._id)
+        if (index !== -1) {
+          const wasActive = state.subscribers[index].activo
+          const isActive = action.payload.activo
+          state.subscribers[index] = action.payload
+          if (wasActive && !isActive) {
+            state.activeSubscribers -= 1
+          } else if (!wasActive && isActive) {
+            state.activeSubscribers += 1
+          }
+        }
+      })
+      .addCase(updateSubscriber.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string || 'Failed to update subscriber'
       })
       // Unsubscribe subscriber
       .addCase(unsubscribeSubscriber.pending, (state) => {
@@ -170,16 +176,17 @@ const subscriberSlice = createSlice({
       })
       .addCase(unsubscribeSubscriber.fulfilled, (state, action) => {
         state.loading = false
-        const subscriber = state.subscribers.find(sub => sub.email === action.payload.email)
-        if (subscriber) {
-          subscriber.isActive = false
-          subscriber.unsubscribedAt = action.payload.unsubscribedAt
-          state.activeSubscribers -= 1
+        const index = state.subscribers.findIndex(sub => sub._id === action.payload._id)
+        if (index !== -1) {
+          state.subscribers[index] = action.payload
+          if (state.subscribers[index].activo === false) {
+            state.activeSubscribers -= 1
+          }
         }
       })
       .addCase(unsubscribeSubscriber.rejected, (state, action) => {
         state.loading = false
-        state.error = action.error.message || 'Failed to unsubscribe'
+        state.error = action.payload as string || 'Failed to unsubscribe'
       })
       // Delete subscriber
       .addCase(deleteSubscriber.pending, (state) => {
@@ -188,18 +195,31 @@ const subscriberSlice = createSlice({
       })
       .addCase(deleteSubscriber.fulfilled, (state, action) => {
         state.loading = false
-        const deletedSubscriber = state.subscribers.find(sub => sub.id === action.payload)
+        const deletedSubscriber = state.subscribers.find(sub => sub._id === action.payload)
         if (deletedSubscriber) {
           state.totalSubscribers -= 1
-          if (deletedSubscriber.isActive) {
+          if (deletedSubscriber.activo) {
             state.activeSubscribers -= 1
           }
         }
-        state.subscribers = state.subscribers.filter(sub => sub.id !== action.payload)
+        state.subscribers = state.subscribers.filter(sub => sub._id !== action.payload)
       })
       .addCase(deleteSubscriber.rejected, (state, action) => {
         state.loading = false
-        state.error = action.error.message || 'Failed to delete subscriber'
+        state.error = action.payload as string || 'Failed to delete subscriber'
+      })
+      // Fetch stats
+      .addCase(fetchSubscriberStats.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(fetchSubscriberStats.fulfilled, (state, action) => {
+        state.loading = false
+        state.stats = action.payload
+      })
+      .addCase(fetchSubscriberStats.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string || 'Failed to fetch stats'
       })
   },
 })

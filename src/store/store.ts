@@ -3,6 +3,7 @@ import authReducer from './slices/authSlice'
 import travelReducer from './slices/travelSlice'
 import subscriberReducer from './slices/subscriberSlice'
 import bookingReducer from './slices/bookingSlice'
+import userReducer from './slices/userSlice'
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     travels: travelReducer,
     subscribers: subscriberReducer,
     bookings: bookingReducer,
+    users: userReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

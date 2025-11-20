@@ -1,9 +1,11 @@
 import { useForm } from 'react-hook-form'
 import { FaTimes, FaSave } from 'react-icons/fa'
+import { Paquete } from '../../services/api'
 import './BookingModal.css'
 
 interface Booking {
   id?: string
+  _id?: string
   travelId: string
   customerName: string
   customerEmail: string
@@ -11,7 +13,10 @@ interface Booking {
   travelDate: string
   passengers: number
   totalPrice: number
+  currency?: string
   status: 'pending' | 'confirmed' | 'cancelled'
+  paymentMethod?: 'efectivo' | 'tarjeta' | 'transferencia'
+  notes?: string
 }
 
 interface BookingModalProps {
@@ -20,9 +25,10 @@ interface BookingModalProps {
   booking?: Booking | null
   action: 'create' | 'edit'
   onSave: (booking: Booking) => void
+  travels?: Paquete[]
 }
 
-const BookingModal = ({ isOpen, onClose, booking, action, onSave }: BookingModalProps) => {
+const BookingModal = ({ isOpen, onClose, booking, action, onSave, travels = [] }: BookingModalProps) => {
   const {
     register,
     handleSubmit,
@@ -37,7 +43,10 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave }: BookingModal
       travelDate: '',
       passengers: 1,
       totalPrice: 0,
-      status: 'pending'
+      currency: 'ARS',
+      status: 'pending',
+      paymentMethod: 'tarjeta',
+      notes: ''
     }
   })
 
@@ -73,15 +82,20 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave }: BookingModal
           <div className="modal-body">
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">ID del Viaje *</label>
-                <input
-                  type="text"
+                <label className="form-label">Viaje *</label>
+                <select
                   className={`form-input ${errors.travelId ? 'error' : ''}`}
-                  placeholder="ID del viaje"
                   {...register('travelId', { 
-                    required: 'El ID del viaje es requerido'
+                    required: 'El viaje es requerido'
                   })}
-                />
+                >
+                  <option value="">Selecciona un viaje</option>
+                  {travels.map(travel => (
+                    <option key={travel._id} value={travel._id}>
+                      {travel.nombre} - {travel.destino}
+                    </option>
+                  ))}
+                </select>
                 {errors.travelId && (
                   <span className="error-message">{errors.travelId.message}</span>
                 )}
@@ -147,8 +161,15 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave }: BookingModal
                 <input
                   type="date"
                   className={`form-input ${errors.travelDate ? 'error' : ''}`}
+                  min={new Date().toISOString().split('T')[0]}
                   {...register('travelDate', { 
-                    required: 'La fecha del viaje es requerida'
+                    required: 'La fecha del viaje es requerida',
+                    validate: (value) => {
+                      const selectedDate = new Date(value)
+                      const today = new Date()
+                      today.setHours(0, 0, 0, 0)
+                      return selectedDate > today || 'La fecha de viaje debe ser futura'
+                    }
                   })}
                 />
                 {errors.travelDate && (
@@ -178,39 +199,63 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave }: BookingModal
 
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">Precio Total (ARS) *</label>
-                <input
-                  type="number"
-                  className={`form-input ${errors.totalPrice ? 'error' : ''}`}
-                  placeholder="0"
-                  min="0"
-                  step="0.01"
-                  {...register('totalPrice', { 
-                    required: 'El precio total es requerido',
-                    min: { value: 0, message: 'El precio debe ser mayor a 0' }
-                  })}
-                />
+                <label className="form-label">Precio Total *</label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className={`form-input ${errors.totalPrice ? 'error' : ''}`}
+                    placeholder="0.00"
+                    min="0"
+                    style={{ flex: '1' }}
+                    {...register('totalPrice', {
+                      required: 'El precio es requerido',
+                      min: { value: 0.01, message: 'El precio debe ser mayor a 0' }
+                    })}
+                  />
+                  <select
+                    className={`form-input ${errors.currency ? 'error' : ''}`}
+                    style={{ width: '120px' }}
+                    {...register('currency', { required: 'La moneda es requerida' })}
+                  >
+                    <option value="ARS">ARS</option>
+                    <option value="USD">USD</option>
+                  </select>
+                </div>
                 {errors.totalPrice && (
                   <span className="error-message">{errors.totalPrice.message}</span>
+                )}
+                {errors.currency && (
+                  <span className="error-message">{errors.currency.message}</span>
                 )}
               </div>
               
               <div className="form-group">
-                <label className="form-label">Estado *</label>
+                <label className="form-label">Método de Pago *</label>
                 <select
-                  className={`form-input ${errors.status ? 'error' : ''}`}
-                  {...register('status', { 
-                    required: 'El estado es requerido'
+                  className={`form-input ${errors.paymentMethod ? 'error' : ''}`}
+                  {...register('paymentMethod', { 
+                    required: 'El método de pago es requerido'
                   })}
                 >
-                  <option value="pending">Pendiente</option>
-                  <option value="confirmed">Confirmada</option>
-                  <option value="cancelled">Cancelada</option>
+                  <option value="efectivo">Efectivo</option>
+                  <option value="tarjeta">Tarjeta</option>
+                  <option value="transferencia">Transferencia</option>
                 </select>
-                {errors.status && (
-                  <span className="error-message">{errors.status.message}</span>
+                {errors.paymentMethod && (
+                  <span className="error-message">{errors.paymentMethod.message}</span>
                 )}
               </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Observaciones</label>
+              <textarea
+                className="form-input form-textarea"
+                placeholder="Notas adicionales sobre la reserva..."
+                rows={3}
+                {...register('notes')}
+              />
             </div>
           </div>
           
