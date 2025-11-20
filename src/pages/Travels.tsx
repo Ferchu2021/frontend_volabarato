@@ -50,7 +50,7 @@ const Travels = () => {
           title: paquete.nombre,
           destination: paquete.destino,
           price: paquete.precio,
-          currency: 'ARS',
+          currency: paquete.moneda || 'USD', // Usar la moneda del paquete
           duration: paquete.duracion || paquete.descripcion || 'Consultar',
           images: paquete.imagenes && paquete.imagenes.length > 0 
             ? paquete.imagenes 

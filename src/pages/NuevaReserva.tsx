@@ -153,8 +153,10 @@ const NuevaReserva: React.FC = () => {
     }
   }
 
-  const formatPrice = (amount: number) => {
-    const converted = convertCurrency(amount, 'ARS', selectedCurrency)
+  const formatPrice = (amount: number, currencyFrom?: string) => {
+    // Usar la moneda del paquete si está disponible, sino asumir ARS
+    const sourceCurrency = currencyFrom || selectedPaquete?.moneda || 'ARS'
+    const converted = convertCurrency(amount, sourceCurrency as any, selectedCurrency)
     return formatCurrency(converted, selectedCurrency)
   }
 
@@ -230,7 +232,7 @@ const NuevaReserva: React.FC = () => {
               <option value="">Selecciona un paquete</option>
               {paquetes.map(paquete => (
                 <option key={paquete._id} value={paquete._id}>
-                  {paquete.nombre} - {paquete.destino} ({formatPrice(paquete.precio)})
+                  {paquete.nombre} - {paquete.destino} ({formatPrice(paquete.precio, paquete.moneda)})
                 </option>
               ))}
             </select>
@@ -359,10 +361,10 @@ const NuevaReserva: React.FC = () => {
               <div className="price-item">
                 <span>Precio por persona:</span>
                 <div className="price-conversion">
-                  <span className="main-price">{formatPrice(selectedPaquete.precio)}</span>
-                  {selectedCurrency !== 'ARS' && (
+                  <span className="main-price">{formatPrice(selectedPaquete.precio, selectedPaquete.moneda)}</span>
+                  {selectedCurrency !== (selectedPaquete.moneda || 'ARS') && (
                     <span className="original-price">
-                      ({formatCurrency(selectedPaquete.precio, 'ARS')})
+                      ({formatCurrency(selectedPaquete.precio, selectedPaquete.moneda || 'ARS')})
                     </span>
                   )}
                 </div>

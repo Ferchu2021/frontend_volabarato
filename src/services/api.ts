@@ -85,6 +85,7 @@ export interface Paquete {
   precio: number;
   descripcion?: string;
   activo: boolean;
+  moneda?: string; // "USD", "ARS", "BRL", "MXN", etc.
   // Nuevos campos para información detallada
   imagenes?: string[]; // Múltiples imágenes por paquete
   duracion?: string; // "7 días / 6 noches"

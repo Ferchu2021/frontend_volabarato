@@ -248,7 +248,7 @@ const Home = () => {
                           }}>
                             Desde {new Intl.NumberFormat('es-AR', {
                               style: 'currency',
-                              currency: 'ARS'
+                              currency: paquete.moneda || 'USD'
                             }).format(paquete.precio)}
                           </span>
                         )}
