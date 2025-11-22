@@ -32,6 +32,23 @@ interface FormData {
     email: string
     telefono: string
   }
+  // Datos para tarjeta
+  tipoTarjeta?: 'credito' | 'debito'
+  marcaTarjeta?: 'visa' | 'mastercard' | 'american-express' | 'otra'
+  numeroTarjeta?: string
+  nombreTitular?: string
+  mesVencimiento?: string
+  anioVencimiento?: string
+  cvv?: string
+  // Datos para transferencia
+  numeroComprobante?: string
+  banco?: string
+  cuenta?: string
+  // Datos para depósito
+  numeroComprobanteDeposito?: string
+  bancoDeposito?: string
+  sucursalDeposito?: string
+  fechaDeposito?: string
 }
 
 const NuevaReserva: React.FC = () => {
@@ -55,7 +72,24 @@ const NuevaReserva: React.FC = () => {
       nombre: '',
       email: '',
       telefono: ''
-    }
+    },
+    // Datos para tarjeta
+    tipoTarjeta: 'credito',
+    marcaTarjeta: 'visa',
+    numeroTarjeta: '',
+    nombreTitular: '',
+    mesVencimiento: '',
+    anioVencimiento: '',
+    cvv: '',
+    // Datos para transferencia
+    numeroComprobante: '',
+    banco: '',
+    cuenta: '',
+    // Datos para depósito
+    numeroComprobanteDeposito: '',
+    bancoDeposito: '',
+    sucursalDeposito: '',
+    fechaDeposito: ''
   })
 
   useEffect(() => {
@@ -308,11 +342,239 @@ const NuevaReserva: React.FC = () => {
               required
             >
               <option value="deposito">Depósito Bancario</option>
-              <option value="tarjeta">Tarjeta</option>
-              <option value="transferencia">Transferencia</option>
+              <option value="tarjeta">Tarjeta de Crédito/Débito</option>
+              <option value="transferencia">Transferencia Bancaria</option>
             </select>
           </div>
         </div>
+
+        {/* Campos condicionales según método de pago */}
+        {formData.metodoPago === 'tarjeta' && (
+          <div className="payment-method-section">
+            <h3>Datos de Tarjeta</h3>
+            <div className="form-grid">
+              <div className="form-group">
+                <label htmlFor="tipoTarjeta">Tipo de Tarjeta *</label>
+                <select
+                  id="tipoTarjeta"
+                  name="tipoTarjeta"
+                  value={formData.tipoTarjeta || 'credito'}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="credito">Tarjeta de Crédito</option>
+                  <option value="debito">Tarjeta de Débito</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="marcaTarjeta">Marca de Tarjeta *</label>
+                <select
+                  id="marcaTarjeta"
+                  name="marcaTarjeta"
+                  value={formData.marcaTarjeta || 'visa'}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="visa">Visa</option>
+                  <option value="mastercard">Mastercard</option>
+                  <option value="american-express">American Express</option>
+                  <option value="otra">Otra</option>
+                </select>
+              </div>
+
+              <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                <label htmlFor="numeroTarjeta">Número de Tarjeta *</label>
+                <input
+                  type="text"
+                  id="numeroTarjeta"
+                  name="numeroTarjeta"
+                  value={formData.numeroTarjeta || ''}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\s/g, '').replace(/\D/g, '')
+                    const formatted = value.match(/.{1,4}/g)?.join(' ') || value
+                    setFormData(prev => ({ ...prev, numeroTarjeta: formatted }))
+                  }}
+                  maxLength={19}
+                  placeholder="1234 5678 9012 3456"
+                  required
+                />
+                <small style={{ display: 'block', marginTop: '0.25rem', color: '#666', fontSize: '0.875rem' }}>
+                  Ingresá el número completo de tu tarjeta
+                </small>
+              </div>
+
+              <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                <label htmlFor="nombreTitular">Nombre como aparece en la tarjeta *</label>
+                <input
+                  type="text"
+                  id="nombreTitular"
+                  name="nombreTitular"
+                  value={formData.nombreTitular || ''}
+                  onChange={handleInputChange}
+                  placeholder="JUAN PEREZ"
+                  style={{ textTransform: 'uppercase' }}
+                  required
+                />
+                <small style={{ display: 'block', marginTop: '0.25rem', color: '#666', fontSize: '0.875rem' }}>
+                  Ingresá el nombre exactamente como aparece en la tarjeta
+                </small>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="mesVencimiento">Mes de Vencimiento *</label>
+                <select
+                  id="mesVencimiento"
+                  name="mesVencimiento"
+                  value={formData.mesVencimiento || ''}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="">Seleccionar mes</option>
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
+                    <option key={month} value={month.toString().padStart(2, '0')}>
+                      {month.toString().padStart(2, '0')}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="anioVencimiento">Año de Vencimiento *</label>
+                <select
+                  id="anioVencimiento"
+                  name="anioVencimiento"
+                  value={formData.anioVencimiento || ''}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="">Seleccionar año</option>
+                  {Array.from({ length: 20 }, (_, i) => new Date().getFullYear() + i).map(year => (
+                    <option key={year} value={year.toString().slice(-2)}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="cvv">CVV *</label>
+                <input
+                  type="text"
+                  id="cvv"
+                  name="cvv"
+                  value={formData.cvv || ''}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '')
+                    const maxLength = formData.marcaTarjeta === 'american-express' ? 4 : 3
+                    setFormData(prev => ({ ...prev, cvv: value.slice(0, maxLength) }))
+                  }}
+                  maxLength={formData.marcaTarjeta === 'american-express' ? 4 : 3}
+                  pattern={formData.marcaTarjeta === 'american-express' ? '[0-9]{4}' : '[0-9]{3}'}
+                  placeholder={formData.marcaTarjeta === 'american-express' ? '1234' : '123'}
+                  required
+                />
+                <small style={{ display: 'block', marginTop: '0.25rem', color: '#666', fontSize: '0.875rem' }}>
+                  {formData.marcaTarjeta === 'american-express' ? '4 dígitos en el frente' : '3 o 4 dígitos en el dorso'}
+                </small>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {formData.metodoPago === 'transferencia' && (
+          <div className="payment-method-section">
+            <h3>Datos de Transferencia</h3>
+            <div className="form-grid">
+              <div className="form-group">
+                <label htmlFor="banco">Banco *</label>
+                <input
+                  type="text"
+                  id="banco"
+                  name="banco"
+                  value={formData.banco || ''}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="cuenta">Número de Cuenta *</label>
+                <input
+                  type="text"
+                  id="cuenta"
+                  name="cuenta"
+                  value={formData.cuenta || ''}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="numeroComprobante">Número de Comprobante *</label>
+                <input
+                  type="text"
+                  id="numeroComprobante"
+                  name="numeroComprobante"
+                  value={formData.numeroComprobante || ''}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {formData.metodoPago === 'deposito' && (
+          <div className="payment-method-section">
+            <h3>Datos de Depósito Bancario</h3>
+            <div className="form-grid">
+              <div className="form-group">
+                <label htmlFor="bancoDeposito">Banco *</label>
+                <input
+                  type="text"
+                  id="bancoDeposito"
+                  name="bancoDeposito"
+                  value={formData.bancoDeposito || ''}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="sucursalDeposito">Sucursal</label>
+                <input
+                  type="text"
+                  id="sucursalDeposito"
+                  name="sucursalDeposito"
+                  value={formData.sucursalDeposito || ''}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="numeroComprobanteDeposito">Número de Comprobante *</label>
+                <input
+                  type="text"
+                  id="numeroComprobanteDeposito"
+                  name="numeroComprobanteDeposito"
+                  value={formData.numeroComprobanteDeposito || ''}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="fechaDeposito">Fecha del Depósito *</label>
+                <input
+                  type="date"
+                  id="fechaDeposito"
+                  name="fechaDeposito"
+                  value={formData.fechaDeposito || ''}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Información de contacto */}
         <div className="contact-section">
