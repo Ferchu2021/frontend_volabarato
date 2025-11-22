@@ -201,8 +201,10 @@ const Admin = () => {
         dispatch(deleteSubscriber(selectedItem.id))
       }
     } else if (activeTab === 'users') {
-      // Para usuarios, por ahora no permitimos eliminación (solo el usuario actual puede eliminarse)
-      console.log('Eliminación de usuarios no disponible desde el admin')
+      // Eliminar usuario usando Redux
+      if (selectedItem._id) {
+        dispatch(deleteUser(selectedItem._id))
+      }
     }
     setShowConfirmModal(false)
     setSelectedItem(null)
@@ -457,20 +459,21 @@ const Admin = () => {
                   <tr>
                     <th>ID</th>
                     <th>Usuario</th>
+                    <th>Rol</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {usersLoading ? (
                     <tr>
-                      <td colSpan={3} style={{ textAlign: 'center', padding: '2rem' }}>
+                      <td colSpan={4} style={{ textAlign: 'center', padding: '2rem' }}>
                         <div className="spinner"></div>
                         <p>Cargando usuarios...</p>
                       </td>
                     </tr>
                   ) : adminUsers.length === 0 ? (
                     <tr>
-                      <td colSpan={3} style={{ textAlign: 'center', padding: '2rem' }}>
+                      <td colSpan={4} style={{ textAlign: 'center', padding: '2rem' }}>
                         <p>No hay usuarios disponibles</p>
                       </td>
                     </tr>
@@ -479,10 +482,14 @@ const Admin = () => {
                       <tr key={user._id}>
                         <td>{user._id}</td>
                         <td>{user.usuario}</td>
+                        <td>{user.rol || 'cliente'}</td>
                         <td>
                           <div className="action-buttons">
                             <button className="btn-icon" onClick={() => handleEdit(user)}>
                               <FaEdit />
+                            </button>
+                            <button className="btn-icon danger" onClick={() => handleDelete(user)}>
+                              <FaTrash />
                             </button>
                           </div>
                         </td>
@@ -635,11 +642,15 @@ const Admin = () => {
                 await dispatch(createUser(userData)).unwrap()
                 await dispatch(fetchUsers())
               } else if (action === 'edit') {
-                await dispatch(updateUser(userData)).unwrap()
+                await dispatch(updateUser({ 
+                  id: selectedItem._id, 
+                  ...userData 
+                })).unwrap()
                 await dispatch(fetchUsers())
               }
             } catch (error) {
               console.error('Error guardando usuario:', error)
+              alert('Error al guardar el usuario: ' + (error as any)?.message || 'Error desconocido')
             }
           }}
         />

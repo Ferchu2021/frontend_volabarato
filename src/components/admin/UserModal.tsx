@@ -15,6 +15,7 @@ interface UserFormData {
   usuario: string
   password: string
   confirmPassword: string
+  rol: 'admin' | 'cliente'
 }
 
 const UserModal = ({ isOpen, onClose, user, action, onSave }: UserModalProps) => {
@@ -30,7 +31,8 @@ const UserModal = ({ isOpen, onClose, user, action, onSave }: UserModalProps) =>
     defaultValues: {
       usuario: '',
       password: '',
-      confirmPassword: ''
+      confirmPassword: '',
+      rol: 'cliente'
     }
   })
 
@@ -39,13 +41,15 @@ const UserModal = ({ isOpen, onClose, user, action, onSave }: UserModalProps) =>
       reset({
         usuario: user.usuario,
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        rol: user.rol || 'cliente'
       })
     } else {
       reset({
         usuario: '',
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        rol: 'cliente'
       })
     }
   }, [user, action, reset])
@@ -55,8 +59,10 @@ const UserModal = ({ isOpen, onClose, user, action, onSave }: UserModalProps) =>
   const onSubmit = async (data: UserFormData) => {
     setIsSubmitting(true)
     try {
-      // En producción, esto manejaría contraseñas de forma diferente para edit
-      const userData: any = { usuario: data.usuario }
+      const userData: any = { 
+        usuario: data.usuario,
+        rol: data.rol
+      }
       if (action === 'create' || data.password) {
         userData.password = data.password
       }
@@ -138,6 +144,23 @@ const UserModal = ({ isOpen, onClose, user, action, onSave }: UserModalProps) =>
               )}
             </div>
           )}
+
+          <div className="form-group">
+            <label htmlFor="rol">Rol</label>
+            <select
+              id="rol"
+              className={errors.rol ? 'error' : ''}
+              {...register('rol', {
+                required: 'El rol es requerido'
+              })}
+            >
+              <option value="cliente">Cliente</option>
+              <option value="admin">Administrador</option>
+            </select>
+            {errors.rol && (
+              <span className="error-message">{errors.rol.message}</span>
+            )}
+          </div>
 
           <div className="modal-actions">
             <button type="button" onClick={onClose} className="btn btn-secondary">
