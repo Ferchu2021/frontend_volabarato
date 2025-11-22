@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
-import { FaSearch, FaFilter, FaMapMarkerAlt, FaClock, FaTag, FaUsers } from 'react-icons/fa'
+import { useNavigate } from 'react-router-dom'
+import { useAppSelector } from '../store/hooks'
+import { FaSearch, FaFilter, FaMapMarkerAlt, FaClock, FaTag, FaUsers, FaCalendarCheck } from 'react-icons/fa'
 import { apiService, Paquete } from '../services/api'
 import ImageGallery from '../components/common/ImageGallery'
 import Badge from '../components/common/Badge'
@@ -26,6 +28,8 @@ interface Travel {
 }
 
 const Travels = () => {
+  const navigate = useNavigate()
+  const { isAuthenticated } = useAppSelector(state => state.auth)
   const [travels, setTravels] = useState<Travel[]>([])
   const [filteredTravels, setFilteredTravels] = useState<Travel[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -33,6 +37,14 @@ const Travels = () => {
   const [priceRange, setPriceRange] = useState({ min: 0, max: 500000 })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const handleReservar = (travelId: string) => {
+    if (!isAuthenticated) {
+      navigate('/login')
+      return
+    }
+    navigate(`/nueva-reserva?paquete=${travelId}`)
+  }
 
   // Cargar paquetes reales desde el backend
   useEffect(() => {
@@ -334,7 +346,7 @@ const Travels = () => {
                     
                     <p className="travel-description">{travel.description}</p>
                     
-                    <div className="travel-footer">
+                      <div className="travel-footer">
                       <div className="travel-price">
                         {travel.consultPrice ? (
                           <span className="price-amount">Cotización a solicitud</span>
@@ -349,14 +361,25 @@ const Travels = () => {
                         )}
                       </div>
                       
-                      <a 
-                        href="https://web.whatsapp.com/send?phone=543412163431"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn btn-primary"
-                      >
-                        Contactanos
-                      </a>
+                      <div className="travel-actions">
+                        {isAuthenticated && (
+                          <button 
+                            onClick={() => handleReservar(travel.id)}
+                            className="btn btn-primary"
+                            style={{ marginRight: '0.5rem' }}
+                          >
+                            <FaCalendarCheck /> Reservar
+                          </button>
+                        )}
+                        <a 
+                          href="https://web.whatsapp.com/send?phone=543412163431"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`btn ${isAuthenticated ? 'btn-outline' : 'btn-primary'}`}
+                        >
+                          Contactanos
+                        </a>
+                      </div>
                     </div>
                   </div>
                 </div>

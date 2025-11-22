@@ -95,11 +95,16 @@ const Register = () => {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="register-form">
-          {error && (
-            <div className="error-message">
-              <p>{error}</p>
-            </div>
-          )}
+      {error && (
+        <div className="error-message">
+          <p><strong>{error}</strong></p>
+          {error.includes('ya existe') || error.includes('ya está registrado') ? (
+            <p style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>
+              ¿Ya tenés una cuenta? <Link to="/login" className="link">Iniciá sesión aquí</Link>
+            </p>
+          ) : null}
+        </div>
+      )}
 
           <div className="form-row">
             <div className="form-group">

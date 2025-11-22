@@ -111,11 +111,19 @@ export const fetchMisReservas = createAsyncThunk(
   'bookings/fetchMisReservas',
   async (params: {
     estado?: string
+    usuarioId?: string
     limit?: number
     page?: number
-  } = {}, { rejectWithValue }) => {
+  } = {}, { rejectWithValue, getState }) => {
     try {
-      const response = await apiService.getMisReservas(params)
+      // Obtener el usuario del estado de autenticación si no se proporciona
+      const state = getState() as any
+      const usuarioId = params.usuarioId || state.auth?.user?._id
+      
+      const response = await apiService.getMisReservas({
+        ...params,
+        usuarioId
+      })
       return response
     } catch (error) {
       return rejectWithValue(handleApiError(error))
@@ -137,9 +145,20 @@ export const fetchBookingById = createAsyncThunk(
 
 export const createBooking = createAsyncThunk(
   'bookings/createBooking',
-  async (bookingData: CreateReservaRequest, { rejectWithValue }) => {
+  async (bookingData: CreateReservaRequest, { rejectWithValue, getState }) => {
     try {
-      const response = await apiService.createReserva(bookingData)
+      // Obtener el usuario del estado de autenticación
+      const state = getState() as any
+      const usuarioId = bookingData.usuario || state.auth?.user?._id
+      
+      if (!usuarioId) {
+        return rejectWithValue('Usuario no autenticado')
+      }
+      
+      const response = await apiService.createReserva({
+        ...bookingData,
+        usuario: usuarioId
+      })
       return response.reserva
     } catch (error) {
       return rejectWithValue(handleApiError(error))

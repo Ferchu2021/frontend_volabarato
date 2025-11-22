@@ -15,7 +15,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
-  const { isAuthenticated, loading, error } = useAppSelector(state => state.auth)
+  const { isAuthenticated, loading, error, user } = useAppSelector(state => state.auth)
 
   const {
     register,
@@ -25,9 +25,14 @@ const Login = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/admin')
+      // Redirigir según el rol del usuario
+      if (user?.rol === 'admin') {
+        navigate('/admin')
+      } else {
+        navigate('/')
+      }
     }
-  }, [isAuthenticated, navigate])
+  }, [isAuthenticated, user, navigate])
 
   useEffect(() => {
     return () => {
@@ -137,6 +142,11 @@ const Login = () => {
           </form>
 
           <div className="login-footer">
+            <p>
+              <Link to="/forgot-password" className="link">
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </p>
             <p>
               ¿Tenés problemas para acceder?{' '}
               <a href="mailto:info@volabarato.com.ar">Contactanos</a>

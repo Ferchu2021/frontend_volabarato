@@ -14,6 +14,8 @@ import MisReservas from './pages/MisReservas'
 import NuevaReserva from './pages/NuevaReserva'
 import Pago from './pages/Pago'
 import ChangePassword from './pages/ChangePassword'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import AdminRoute from './components/auth/AdminRoute'
 import './App.css'
@@ -35,6 +37,8 @@ function App() {
           <Route path="/contacto" element={<Contact />} />
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/resetear-contraseña" element={<ResetPassword />} />
           <Route 
             path="/admin" 
             element={

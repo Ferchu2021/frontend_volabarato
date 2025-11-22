@@ -459,6 +459,20 @@ class ApiService {
     });
   }
 
+  async requestPasswordReset(email: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>('/user/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>('/user/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, newPassword }),
+    });
+  }
+
   // Métodos para suscriptores
   async getSuscriptores(params?: { activo?: boolean; limit?: number; page?: number }): Promise<{ data: Suscriptor[]; pagination: any }> {
     const queryParams = new URLSearchParams();
