@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useSearchParams } from 'react-router-dom'
 import { RootState, AppDispatch } from '../store/store'
 import { createBooking } from '../store/slices/bookingSlice'
 import { apiService, Paquete } from '../services/api'
@@ -24,7 +25,7 @@ interface FormData {
   fechaViaje: string
   cantidadPersonas: number
   precioTotal: number
-  metodoPago: 'efectivo' | 'tarjeta' | 'transferencia'
+  metodoPago: 'tarjeta' | 'transferencia' | 'deposito'
   observaciones: string
   datosContacto: {
     nombre: string
@@ -35,7 +36,9 @@ interface FormData {
 
 const NuevaReserva: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>()
+  const [searchParams] = useSearchParams()
   const { loading, error } = useSelector((state: RootState) => state.bookings)
+  const { user } = useSelector((state: RootState) => state.auth)
   
   const [paquetes, setPaquetes] = useState<Paquete[]>([])
   const [selectedPaquete, setSelectedPaquete] = useState<Paquete | null>(null)
@@ -46,7 +49,7 @@ const NuevaReserva: React.FC = () => {
     fechaViaje: '',
     cantidadPersonas: 1,
     precioTotal: 0,
-    metodoPago: 'efectivo',
+    metodoPago: 'tarjeta',
     observaciones: '',
     datosContacto: {
       nombre: '',
@@ -58,6 +61,22 @@ const NuevaReserva: React.FC = () => {
   useEffect(() => {
     loadPaquetes()
   }, [])
+
+  // Preseleccionar paquete desde query params
+  useEffect(() => {
+    const paqueteId = searchParams.get('paquete')
+    if (paqueteId && paquetes.length > 0) {
+      const paquete = paquetes.find(p => p._id === paqueteId)
+      if (paquete) {
+        setSelectedPaquete(paquete)
+        setFormData(prev => ({
+          ...prev,
+          paquete: paqueteId,
+          precioTotal: paquete.precio * prev.cantidadPersonas
+        }))
+      }
+    }
+  }, [searchParams, paquetes])
 
   useEffect(() => {
     if (selectedPaquete) {
@@ -120,8 +139,12 @@ const NuevaReserva: React.FC = () => {
       return
     }
 
+    if (!user?._id) {
+      alert('Debes estar autenticado para hacer una reserva')
+      return
+    }
+
     try {
-      // No incluir usuario, el backend lo obtiene del token JWT
       const bookingData = {
         paquete: formData.paquete,
         fechaViaje: formData.fechaViaje,
@@ -129,6 +152,7 @@ const NuevaReserva: React.FC = () => {
         precioTotal: formData.precioTotal,
         metodoPago: formData.metodoPago,
         observaciones: formData.observaciones,
+        usuario: user._id,
         datosContacto: formData.datosContacto
       }
       await dispatch(createBooking(bookingData)).unwrap()
@@ -139,7 +163,7 @@ const NuevaReserva: React.FC = () => {
         fechaViaje: '',
         cantidadPersonas: 1,
         precioTotal: 0,
-        metodoPago: 'efectivo',
+        metodoPago: 'tarjeta',
         observaciones: '',
         datosContacto: {
           nombre: '',
@@ -283,7 +307,7 @@ const NuevaReserva: React.FC = () => {
               onChange={handleInputChange}
               required
             >
-              <option value="efectivo">Efectivo</option>
+              <option value="deposito">Depósito Bancario</option>
               <option value="tarjeta">Tarjeta</option>
               <option value="transferencia">Transferencia</option>
             </select>

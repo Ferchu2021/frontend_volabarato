@@ -127,7 +127,7 @@ const MisReservas: React.FC = () => {
 
   const getPaymentMethodText = (method: Booking['metodoPago']) => {
     switch (method) {
-      case 'efectivo': return 'Efectivo'
+      case 'deposito': return 'Depósito Bancario'
       case 'tarjeta': return 'Tarjeta'
       case 'transferencia': return 'Transferencia'
       default: return method

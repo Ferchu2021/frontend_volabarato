@@ -37,7 +37,7 @@ export interface Reserva {
   cantidadPersonas: number;
   precioTotal: number;
   estado: 'pendiente' | 'confirmada' | 'cancelada' | 'completada';
-  metodoPago: 'efectivo' | 'tarjeta' | 'transferencia';
+  metodoPago: 'tarjeta' | 'transferencia' | 'deposito';
   observaciones?: string;
   datosContacto: {
     nombre: string;
@@ -53,7 +53,7 @@ export interface CreateReservaRequest {
   fechaViaje: string;
   cantidadPersonas: number;
   precioTotal: number;
-  metodoPago: 'efectivo' | 'tarjeta' | 'transferencia';
+  metodoPago: 'tarjeta' | 'transferencia' | 'deposito';
   observaciones?: string;
   usuario?: string; // ID del usuario
   datosContacto: {
@@ -146,7 +146,7 @@ export interface UpdateSuscriptorRequest {
 export interface Pago {
   _id: string;
   reserva: string | Reserva;
-  metodoPago: 'efectivo' | 'tarjeta' | 'transferencia';
+  metodoPago: 'tarjeta' | 'transferencia' | 'deposito';
   monto: number;
   moneda: string;
   estado: 'pendiente' | 'procesando' | 'completado' | 'rechazado' | 'cancelado';
@@ -156,6 +156,10 @@ export interface Pago {
   datosPago?: {
     numeroTarjeta?: string;
     tipoTarjeta?: string;
+    marcaTarjeta?: string;
+    nombreTitular?: string;
+    mesVencimiento?: string;
+    anioVencimiento?: string;
     numeroComprobante?: string;
     banco?: string;
     cuenta?: string;
@@ -169,13 +173,17 @@ export interface Pago {
 
 export interface CreatePagoRequest {
   reserva: string;
-  metodoPago: 'efectivo' | 'tarjeta' | 'transferencia';
+  metodoPago: 'tarjeta' | 'transferencia' | 'deposito';
   monto: number;
   moneda?: string;
   fechaVencimiento?: string;
   datosPago?: {
     numeroTarjeta?: string;
     tipoTarjeta?: string;
+    marcaTarjeta?: string;
+    nombreTitular?: string;
+    mesVencimiento?: string;
+    anioVencimiento?: string;
     numeroComprobante?: string;
     banco?: string;
     cuenta?: string;
@@ -192,6 +200,10 @@ export interface UpdatePagoRequest {
   datosPago?: {
     numeroTarjeta?: string;
     tipoTarjeta?: string;
+    marcaTarjeta?: string;
+    nombreTitular?: string;
+    mesVencimiento?: string;
+    anioVencimiento?: string;
     numeroComprobante?: string;
     banco?: string;
     cuenta?: string;
@@ -437,6 +449,13 @@ class ApiService {
   async deleteCurrentUser(): Promise<{ message: string }> {
     return this.request<{ message: string }>('/user/me', {
       method: 'DELETE',
+    });
+  }
+
+  async changePassword(data: { id: string; currentPassword: string; newPassword: string }): Promise<{ message: string }> {
+    return this.request<{ message: string }>('/user/change-password', {
+      method: 'PUT',
+      body: JSON.stringify(data),
     });
   }
 
