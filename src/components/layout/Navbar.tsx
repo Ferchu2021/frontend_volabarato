@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAppSelector, useAppDispatch } from '../../store/hooks'
 import { logoutUser } from '../../store/slices/authSlice'
-import { FaBars, FaTimes, FaUser, FaSignOutAlt, FaCalendarAlt, FaPlus } from 'react-icons/fa'
+import { FaBars, FaTimes, FaUser, FaSignOutAlt, FaCalendarAlt, FaPlus, FaLock } from 'react-icons/fa'
 import './Navbar.css'
 
 const Navbar = () => {
@@ -60,6 +60,10 @@ const Navbar = () => {
                   Admin
                 </Link>
               )}
+              <Link to="/cambiar-contraseña" className="nav-link" onClick={() => setIsMenuOpen(false)}>
+                <FaLock className="nav-icon" />
+                Cambiar Contraseña
+              </Link>
               <button className="nav-link logout-btn" onClick={handleLogout}>
                 <FaSignOutAlt className="nav-icon" />
                 Salir

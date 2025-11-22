@@ -13,6 +13,7 @@ import Admin from './pages/Admin'
 import MisReservas from './pages/MisReservas'
 import NuevaReserva from './pages/NuevaReserva'
 import Pago from './pages/Pago'
+import ChangePassword from './pages/ChangePassword'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import AdminRoute from './components/auth/AdminRoute'
 import './App.css'
@@ -63,6 +64,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Pago />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/cambiar-contraseña" 
+            element={
+              <ProtectedRoute>
+                <ChangePassword />
               </ProtectedRoute>
             } 
           />
