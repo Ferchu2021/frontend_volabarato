@@ -21,7 +21,8 @@ import {
   Subscriber as ReduxSubscriber
 } from '../store/slices/subscriberSlice'
 import { useNavigate } from 'react-router-dom'
-import { FaSignOutAlt, FaPlus, FaEdit, FaTrash, FaEye, FaCheck, FaUsers } from 'react-icons/fa'
+import { FaSignOutAlt, FaPlus, FaEdit, FaTrash, FaEye, FaCheck, FaUsers, FaFileExcel } from 'react-icons/fa'
+import * as XLSX from 'xlsx'
 import TravelModal from '../components/admin/TravelModal'
 import BookingModal from '../components/admin/BookingModal'
 import SubscriberModal from '../components/admin/SubscriberModal'
@@ -94,6 +95,90 @@ const Admin = () => {
 
   const handleDeleteBooking = (bookingId: string) => {
     dispatch(deleteBooking(bookingId))
+  }
+
+  // Función para exportar ventas a Excel
+  const exportSalesToExcel = () => {
+    // Filtrar solo reservas confirmadas y completadas (ventas realizadas)
+    const sales = bookings.filter(b => b.estado === 'confirmada' || b.estado === 'completada')
+    
+    const salesData = sales.map(booking => ({
+      'Número de Reserva': booking.numeroReserva || 'N/A',
+      'Fecha de Reserva': formatDate(booking.fechaReserva),
+      'Fecha de Viaje': formatDate(booking.fechaViaje),
+      'Cliente': booking.datosContacto.nombre,
+      'Email': booking.datosContacto.email,
+      'Teléfono': booking.datosContacto.telefono,
+      'Paquete': booking.paquete?.nombre || 'N/A',
+      'Destino': booking.paquete?.destino || 'N/A',
+      'Cantidad de Personas': booking.cantidadPersonas,
+      'Precio Total': booking.precioTotal,
+      'Método de Pago': getPaymentMethodText(booking.metodoPago),
+      'Estado': getStatusText(booking.estado),
+      'Observaciones': booking.observaciones || ''
+    }))
+
+    // Agregar resumen al final
+    const totalSales = sales.reduce((sum, b) => sum + b.precioTotal, 0)
+    const summaryData = [
+      {},
+      { 'Número de Reserva': 'RESUMEN', 'Fecha de Reserva': '', 'Fecha de Viaje': '', 'Cliente': '', 'Email': '', 'Teléfono': '', 'Paquete': '', 'Destino': '', 'Cantidad de Personas': '', 'Precio Total': '', 'Método de Pago': '', 'Estado': '', 'Observaciones': '' },
+      { 'Número de Reserva': 'Total de Ventas', 'Fecha de Reserva': '', 'Fecha de Viaje': '', 'Cliente': '', 'Email': '', 'Teléfono': '', 'Paquete': '', 'Destino': '', 'Cantidad de Personas': sales.length, 'Precio Total': totalSales, 'Método de Pago': '', 'Estado': '', 'Observaciones': '' },
+      { 'Número de Reserva': 'Promedio por Venta', 'Fecha de Reserva': '', 'Fecha de Viaje': '', 'Cliente': '', 'Email': '', 'Teléfono': '', 'Paquete': '', 'Destino': '', 'Cantidad de Personas': '', 'Precio Total': sales.length > 0 ? (totalSales / sales.length).toFixed(2) : 0, 'Método de Pago': '', 'Estado': '', 'Observaciones': '' }
+    ]
+
+    const worksheet = XLSX.utils.json_to_sheet([...salesData, ...summaryData])
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Ventas')
+    
+    const fileName = `Ventas_${new Date().toISOString().split('T')[0]}.xlsx`
+    XLSX.writeFile(workbook, fileName)
+  }
+
+  // Función para exportar estados de reservas a Excel
+  const exportReservationsToExcel = () => {
+    const reservationsData = bookings.map(booking => ({
+      'Número de Reserva': booking.numeroReserva || 'N/A',
+      'Fecha de Reserva': formatDate(booking.fechaReserva),
+      'Fecha de Viaje': formatDate(booking.fechaViaje),
+      'Cliente': booking.datosContacto.nombre,
+      'Email': booking.datosContacto.email,
+      'Teléfono': booking.datosContacto.telefono,
+      'Paquete': booking.paquete?.nombre || 'N/A',
+      'Destino': booking.paquete?.destino || 'N/A',
+      'Cantidad de Personas': booking.cantidadPersonas,
+      'Precio Total': booking.precioTotal,
+      'Método de Pago': getPaymentMethodText(booking.metodoPago),
+      'Estado': getStatusText(booking.estado),
+      'Observaciones': booking.observaciones || ''
+    }))
+
+    // Agregar resumen por estado
+    const summaryByStatus = [
+      {},
+      { 'Número de Reserva': 'RESUMEN POR ESTADO', 'Fecha de Reserva': '', 'Fecha de Viaje': '', 'Cliente': '', 'Email': '', 'Teléfono': '', 'Paquete': '', 'Destino': '', 'Cantidad de Personas': '', 'Precio Total': '', 'Método de Pago': '', 'Estado': '', 'Observaciones': '' },
+      { 'Número de Reserva': 'Pendientes', 'Fecha de Reserva': '', 'Fecha de Viaje': '', 'Cliente': '', 'Email': '', 'Teléfono': '', 'Paquete': '', 'Destino': '', 'Cantidad de Personas': bookings.filter(b => b.estado === 'pendiente').length, 'Precio Total': bookings.filter(b => b.estado === 'pendiente').reduce((sum, b) => sum + b.precioTotal, 0), 'Método de Pago': '', 'Estado': '', 'Observaciones': '' },
+      { 'Número de Reserva': 'Confirmadas', 'Fecha de Reserva': '', 'Fecha de Viaje': '', 'Cliente': '', 'Email': '', 'Teléfono': '', 'Paquete': '', 'Destino': '', 'Cantidad de Personas': bookings.filter(b => b.estado === 'confirmada').length, 'Precio Total': bookings.filter(b => b.estado === 'confirmada').reduce((sum, b) => sum + b.precioTotal, 0), 'Método de Pago': '', 'Estado': '', 'Observaciones': '' },
+      { 'Número de Reserva': 'Canceladas', 'Fecha de Reserva': '', 'Fecha de Viaje': '', 'Cliente': '', 'Email': '', 'Teléfono': '', 'Paquete': '', 'Destino': '', 'Cantidad de Personas': bookings.filter(b => b.estado === 'cancelada').length, 'Precio Total': bookings.filter(b => b.estado === 'cancelada').reduce((sum, b) => sum + b.precioTotal, 0), 'Método de Pago': '', 'Estado': '', 'Observaciones': '' },
+      { 'Número de Reserva': 'Completadas', 'Fecha de Reserva': '', 'Fecha de Viaje': '', 'Cliente': '', 'Email': '', 'Teléfono': '', 'Paquete': '', 'Destino': '', 'Cantidad de Personas': bookings.filter(b => b.estado === 'completada').length, 'Precio Total': bookings.filter(b => b.estado === 'completada').reduce((sum, b) => sum + b.precioTotal, 0), 'Método de Pago': '', 'Estado': '', 'Observaciones': '' },
+      { 'Número de Reserva': 'TOTAL', 'Fecha de Reserva': '', 'Fecha de Viaje': '', 'Cliente': '', 'Email': '', 'Teléfono': '', 'Paquete': '', 'Destino': '', 'Cantidad de Personas': bookings.length, 'Precio Total': bookings.reduce((sum, b) => sum + b.precioTotal, 0), 'Método de Pago': '', 'Estado': '', 'Observaciones': '' }
+    ]
+
+    const worksheet = XLSX.utils.json_to_sheet([...reservationsData, ...summaryByStatus])
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Reservas')
+    
+    const fileName = `Reservas_${new Date().toISOString().split('T')[0]}.xlsx`
+    XLSX.writeFile(workbook, fileName)
+  }
+
+  const getPaymentMethodText = (method: string) => {
+    switch (method) {
+      case 'tarjeta': return 'Tarjeta'
+      case 'transferencia': return 'Transferencia'
+      case 'deposito': return 'Depósito Bancario'
+      default: return method
+    }
   }
 
   const formatCurrency = (amount: number) => {
@@ -270,10 +355,22 @@ const Admin = () => {
         </div>
 
         <div className="admin-actions">
-          <button className="btn btn-primary" onClick={handleCreate}>
-            <FaPlus />
-            Crear Nuevo
-          </button>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <button className="btn btn-primary" onClick={handleCreate}>
+              <FaPlus />
+              Crear Nuevo
+            </button>
+            {activeTab === 'bookings' && (
+              <>
+                <button className="btn-export" onClick={exportSalesToExcel}>
+                  <FaFileExcel /> Exportar Ventas
+                </button>
+                <button className="btn-export" onClick={exportReservationsToExcel}>
+                  <FaFileExcel /> Exportar Reservas
+                </button>
+              </>
+            )}
+          </div>
           <button className="btn btn-outline" onClick={handleLogout}>
             <FaSignOutAlt />
             Cerrar Sesión
