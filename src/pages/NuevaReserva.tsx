@@ -484,42 +484,171 @@ const NuevaReserva: React.FC = () => {
 
         {formData.metodoPago === 'transferencia' && (
           <div className="payment-method-section">
-            <h3>Datos de Transferencia</h3>
-            <div className="form-grid">
-              <div className="form-group">
-                <label htmlFor="banco">Banco *</label>
-                <input
-                  type="text"
-                  id="banco"
-                  name="banco"
-                  value={formData.banco || ''}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
+            <h3>Datos de Transferencia Bancaria</h3>
+            
+            {/* Información bancaria */}
+            <div className="bank-info-section">
+              <h4>Información Bancaria para Transferencia</h4>
+              <div className="bank-info-content">
+                <div className="bank-info-general">
+                  <p><strong>Titular:</strong> Aero SRL</p>
+                  <p><strong>CUIT:</strong> 30-70736214-2</p>
+                </div>
 
-              <div className="form-group">
-                <label htmlFor="cuenta">Número de Cuenta *</label>
-                <input
-                  type="text"
-                  id="cuenta"
-                  name="cuenta"
-                  value={formData.cuenta || ''}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
+                <div className="bank-accounts">
+                  <div className="bank-account-card">
+                    <h5>🏦 Banco Macro</h5>
+                    <div className="account-details">
+                      <p><strong>Cuenta Corriente Especial en Pesos</strong></p>
+                      <p className="account-note">Solo para pagos por transferencia. (Para depósitos en efectivo, informar acuerdo de recaudación 84338, caso contrario aplicará gasto de 1%)</p>
+                      <p><strong>Sucursal:</strong> 530</p>
+                      <p><strong>Nro de Cta:</strong> 453009462845103</p>
+                      <p><strong>CBU:</strong> 2850530540094628451038</p>
+                      <p><strong>Alias Pesos:</strong> <span className="alias">AERO.BANCO.MACRO</span></p>
+                      <p className="account-note">Exclusivamente para cheques: Cuenta Corriente Nro 353009407650146</p>
+                    </div>
+                  </div>
 
-              <div className="form-group">
-                <label htmlFor="numeroComprobante">Número de Comprobante *</label>
-                <input
-                  type="text"
-                  id="numeroComprobante"
-                  name="numeroComprobante"
-                  value={formData.numeroComprobante || ''}
-                  onChange={handleInputChange}
-                  required
-                />
+                  <div className="bank-account-card">
+                    <h5>🏦 Banco Macro - Dólares</h5>
+                    <div className="account-details">
+                      <p><strong>Cuenta Corriente en Dólares</strong></p>
+                      <p className="account-note">Solo para pagos por transferencia - (Para depósitos en efectivo, informar el acuerdo de recaudación 89761, caso contrario aplicará gasto de 1%)</p>
+                      <p><strong>Sucursal:</strong> 530</p>
+                      <p><strong>Nro de Cta:</strong> 253009462845099</p>
+                      <p><strong>CBU:</strong> 2850530520094628450994</p>
+                      <p><strong>Alias Dolares:</strong> <span className="alias">AERO.MACRO.DOLAR</span></p>
+                    </div>
+                  </div>
+
+                  <div className="bank-account-card">
+                    <h5>🏦 Banco Provincia</h5>
+                    <div className="account-details">
+                      <p><strong>Cuenta Corriente en Pesos</strong></p>
+                      <p className="account-note">Solo para pagos por transferencia (para depósitos en efectivo aplicará gasto de 1%)</p>
+                      <p><strong>Sucursal:</strong> 2000</p>
+                      <p><strong>Nro de Cta:</strong> 001/051456/5</p>
+                      <p><strong>CBU:</strong> 01409998 01200005145657</p>
+                      <p><strong>Alias Pesos:</strong> <span className="alias">AERO.PROVINCIA.PESOS</span></p>
+                    </div>
+                  </div>
+
+                  <div className="bank-account-card">
+                    <h5>🏦 Banco Galicia</h5>
+                    <div className="account-details">
+                      <p><strong>Cuenta Corriente en Pesos</strong></p>
+                      <p className="account-note">Solo para pagos por transferencia (para depósitos en efectivo aplicará gasto de 1%)</p>
+                      <p><strong>Nro de Cta:</strong> 10885-8 172-9</p>
+                      <p><strong>CBU:</strong> 00701729-20000010885891</p>
+                      <p><strong>Alias Pesos:</strong> <span className="alias">AERO.BANCO.GALICIA</span></p>
+                    </div>
+                  </div>
+
+                  <div className="bank-account-card">
+                    <h5>🏦 Banco Santander - Pesos</h5>
+                    <div className="account-details">
+                      <p><strong>Cuenta Corriente en Pesos</strong></p>
+                      <p className="account-note">Solo para pagos por transferencia (para depósitos en efectivo aplicará gasto de 1%)</p>
+                      <p><strong>Sucursal:</strong> 099</p>
+                      <p><strong>Nro de Cuenta:</strong> 002528/1</p>
+                      <p><strong>CBU:</strong> 0720099120000000252818</p>
+                      <p><strong>Alias Pesos:</strong> <span className="alias">AERO.SANTANDER.PESOS</span></p>
+                    </div>
+                  </div>
+
+                  <div className="bank-account-card">
+                    <h5>🏦 Banco Santander - Dólares</h5>
+                    <div className="account-details">
+                      <p><strong>Cuenta Corriente en Dólares</strong></p>
+                      <p className="account-note">Solo para pagos por transferencia</p>
+                      <p><strong>Sucursal:</strong> 099</p>
+                      <p><strong>Nro de Cuenta:</strong> 002529/8</p>
+                      <p><strong>CBU:</strong> 0720099121000000252987</p>
+                      <p><strong>Alias Dolares:</strong> <span className="alias">AERO.BCOSANTANDER</span></p>
+                    </div>
+                  </div>
+
+                  <div className="bank-account-card">
+                    <h5>🏦 Banco Francés - Pesos</h5>
+                    <div className="account-details">
+                      <p><strong>Cuenta Corriente en Pesos</strong></p>
+                      <p className="account-note">Solo para pagos por transferencia (para depósitos en efectivo aplicará gasto de 1%)</p>
+                      <p><strong>Sucursal:</strong> 486</p>
+                      <p><strong>Nro de Cta:</strong> 001578/3</p>
+                      <p><strong>CBU:</strong> 0170486420000000157830</p>
+                    </div>
+                  </div>
+
+                  <div className="bank-account-card">
+                    <h5>🏦 Banco Francés - Dólares</h5>
+                    <div className="account-details">
+                      <p><strong>Cuenta Corriente en Dólares</strong></p>
+                      <p className="account-note">Solo para pagos por transferencia</p>
+                      <p><strong>Sucursal:</strong> 361</p>
+                      <p><strong>Nro de Cuenta:</strong> 091397/3</p>
+                      <p><strong>CBU:</strong> 0170361826000009139732</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bank-info-warning">
+                  <p><strong>⚠️ Importante:</strong></p>
+                  <ul>
+                    <li>Para el pago de aéreos emitidos en ARS, se deducirá el 1,2% - Imp. Ley 25413.</li>
+                    <li>Para el pago de aéreos emitidos en USD, se deducirá el 1,2% - Imp. Ley 25413 y el 0,15% asociado al gasto de la cuenta recaudadora de IATA en dicha moneda.</li>
+                    <li>Las transferencias bancarias están sujetas a plazos de acreditación.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Formulario para datos de la transferencia */}
+            <div className="deposit-form-section">
+              <h4>Completar Datos de la Transferencia</h4>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label htmlFor="banco">Banco *</label>
+                  <select
+                    id="banco"
+                    name="banco"
+                    value={formData.banco || ''}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="">Seleccionar banco</option>
+                    <option value="Banco Macro">Banco Macro</option>
+                    <option value="Banco Provincia">Banco Provincia</option>
+                    <option value="Banco Galicia">Banco Galicia</option>
+                    <option value="Banco Santander">Banco Santander</option>
+                    <option value="Banco Francés">Banco Francés</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="cuenta">Número de Cuenta *</label>
+                  <input
+                    type="text"
+                    id="cuenta"
+                    name="cuenta"
+                    value={formData.cuenta || ''}
+                    onChange={handleInputChange}
+                    placeholder="Número de cuenta utilizada"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="numeroComprobante">Número de Comprobante *</label>
+                  <input
+                    type="text"
+                    id="numeroComprobante"
+                    name="numeroComprobante"
+                    value={formData.numeroComprobante || ''}
+                    onChange={handleInputChange}
+                    placeholder="Número del comprobante de transferencia"
+                    required
+                  />
+                </div>
               </div>
             </div>
           </div>
