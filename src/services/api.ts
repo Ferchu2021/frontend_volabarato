@@ -381,7 +381,20 @@ class ApiService {
   }
 
   // Métodos para gestión de usuarios
-  async registerUser(data: { usuario: string; password: string }): Promise<{ message: string; user: User }> {
+  async registerUser(data: {
+    usuario: string
+    password: string
+    nombreLegal: string
+    fechaNacimiento: string
+    nacionalidad: string
+    dni: string
+    cuilCuit?: string
+    numeroPasaporte: string
+    telefono: string
+    telefonoContacto: string
+    email: string
+    rol?: 'admin' | 'cliente'
+  }): Promise<{ message: string; user: User }> {
     return this.request<{ message: string; user: User }>('/user/register', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -390,6 +403,24 @@ class ApiService {
 
   async getUsers(): Promise<User[]> {
     return this.request<User[]>('/user');
+  }
+
+  async getUserById(id: string): Promise<User> {
+    return this.request<User>(`/user/${id}`);
+  }
+
+  async updateUserById(id: string, data: { usuario?: string; password?: string; rol?: 'admin' | 'cliente' }): Promise<{ message: string; user: User }> {
+    return this.request<{ message: string; user: User }>(`/user/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ ...data, id }),
+    });
+  }
+
+  async deleteUserById(id: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/user/${id}`, {
+      method: 'DELETE',
+      body: JSON.stringify({ id }),
+    });
   }
 
   async getUserById(id: string): Promise<User> {

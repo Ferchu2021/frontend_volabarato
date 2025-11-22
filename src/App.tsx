@@ -8,6 +8,7 @@ import Home from './pages/Home'
 import Travels from './pages/Travels'
 import Contact from './pages/Contact'
 import Login from './pages/Login'
+import Register from './pages/Register'
 import Admin from './pages/Admin'
 import MisReservas from './pages/MisReservas'
 import NuevaReserva from './pages/NuevaReserva'
@@ -32,6 +33,7 @@ function App() {
           <Route path="/viajes" element={<Travels />} />
           <Route path="/contacto" element={<Contact />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/registro" element={<Register />} />
           <Route 
             path="/admin" 
             element={
