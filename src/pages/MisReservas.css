@@ -319,7 +319,7 @@
   flex-wrap: wrap;
 }
 
-.btn-view, .btn-cancel, .btn-delete {
+.btn-view, .btn-cancel, .btn-delete, .btn-payment {
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 0.375rem;
@@ -357,6 +357,15 @@
 
 .btn-delete:hover {
   background: #dc2626;
+}
+
+.btn-payment {
+  background: #10b981;
+  color: white;
+}
+
+.btn-payment:hover {
+  background: #059669;
 }
 
 .no-reservas {

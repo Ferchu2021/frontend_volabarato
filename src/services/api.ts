@@ -55,6 +55,7 @@ export interface CreateReservaRequest {
   precioTotal: number;
   metodoPago: 'efectivo' | 'tarjeta' | 'transferencia';
   observaciones?: string;
+  usuario?: string; // ID del usuario
   datosContacto: {
     nombre: string;
     email: string;
@@ -139,6 +140,65 @@ export interface UpdateSuscriptorRequest {
   pais?: string;
   ciudad?: string;
   activo?: boolean;
+}
+
+// Interfaces para Pagos
+export interface Pago {
+  _id: string;
+  reserva: string | Reserva;
+  metodoPago: 'efectivo' | 'tarjeta' | 'transferencia';
+  monto: number;
+  moneda: string;
+  estado: 'pendiente' | 'procesando' | 'completado' | 'rechazado' | 'cancelado';
+  fechaPago?: string;
+  fechaVencimiento?: string;
+  referencia?: string;
+  datosPago?: {
+    numeroTarjeta?: string;
+    tipoTarjeta?: string;
+    numeroComprobante?: string;
+    banco?: string;
+    cuenta?: string;
+    lugarPago?: string;
+    recibidoPor?: string;
+  };
+  observaciones?: string;
+  fechaCreacion: string;
+  fechaActualizacion: string;
+}
+
+export interface CreatePagoRequest {
+  reserva: string;
+  metodoPago: 'efectivo' | 'tarjeta' | 'transferencia';
+  monto: number;
+  moneda?: string;
+  fechaVencimiento?: string;
+  datosPago?: {
+    numeroTarjeta?: string;
+    tipoTarjeta?: string;
+    numeroComprobante?: string;
+    banco?: string;
+    cuenta?: string;
+    lugarPago?: string;
+    recibidoPor?: string;
+  };
+  observaciones?: string;
+}
+
+export interface UpdatePagoRequest {
+  estado?: 'pendiente' | 'procesando' | 'completado' | 'rechazado' | 'cancelado';
+  fechaPago?: string;
+  referencia?: string;
+  datosPago?: {
+    numeroTarjeta?: string;
+    tipoTarjeta?: string;
+    numeroComprobante?: string;
+    banco?: string;
+    cuenta?: string;
+    lugarPago?: string;
+    recibidoPor?: string;
+  };
+  observaciones?: string;
 }
 
 export interface LoginResponse {
@@ -245,11 +305,13 @@ class ApiService {
 
   async getMisReservas(params?: {
     estado?: string;
+    usuarioId?: string;
     limit?: number;
     page?: number;
   }): Promise<PaginatedResponse<Reserva>> {
     const queryParams = new URLSearchParams();
     if (params?.estado) queryParams.append('estado', params.estado);
+    if (params?.usuarioId) queryParams.append('usuarioId', params.usuarioId);
     if (params?.limit) queryParams.append('limit', params.limit.toString());
     if (params?.page) queryParams.append('page', params.page.toString());
 
@@ -390,6 +452,60 @@ class ApiService {
 
   async getSuscriptoresStats(): Promise<{ totalSuscriptores: number; suscriptoresActivos: number; suscriptoresInactivos: number; porPais: any[] }> {
     return this.request('/suscriptor/stats');
+  }
+
+  // Métodos para pagos
+  async getPagos(params?: {
+    estado?: string;
+    metodoPago?: string;
+    reserva?: string;
+    limit?: number;
+    page?: number;
+  }): Promise<PaginatedResponse<Pago>> {
+    const queryParams = new URLSearchParams();
+    if (params?.estado) queryParams.append('estado', params.estado);
+    if (params?.metodoPago) queryParams.append('metodoPago', params.metodoPago);
+    if (params?.reserva) queryParams.append('reserva', params.reserva);
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.page) queryParams.append('page', params.page.toString());
+
+    const endpoint = `/pago${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    return this.request<PaginatedResponse<Pago>>(endpoint);
+  }
+
+  async getPagoById(id: string): Promise<Pago> {
+    return this.request<Pago>(`/pago/${id}`);
+  }
+
+  async getPagoByReserva(reservaId: string): Promise<Pago> {
+    return this.request<Pago>(`/pago/reserva/${reservaId}`);
+  }
+
+  async createPago(data: CreatePagoRequest): Promise<{ message: string; pago: Pago }> {
+    return this.request<{ message: string; pago: Pago }>('/pago', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updatePago(id: string, data: UpdatePagoRequest): Promise<{ message: string; pago: Pago }> {
+    return this.request<{ message: string; pago: Pago }>(`/pago/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async completarPago(id: string, data: { referencia?: string; datosPago?: any }): Promise<{ message: string; pago: Pago }> {
+    return this.request<{ message: string; pago: Pago }>(`/pago/${id}/completar`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deletePago(id: string): Promise<{ message: string; pago: Pago }> {
+    return this.request<{ message: string; pago: Pago }>(`/pago/${id}`, {
+      method: 'DELETE',
+    });
   }
 }
 

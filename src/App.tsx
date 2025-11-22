@@ -11,7 +11,9 @@ import Login from './pages/Login'
 import Admin from './pages/Admin'
 import MisReservas from './pages/MisReservas'
 import NuevaReserva from './pages/NuevaReserva'
+import Pago from './pages/Pago'
 import ProtectedRoute from './components/auth/ProtectedRoute'
+import AdminRoute from './components/auth/AdminRoute'
 import './App.css'
 
 function App() {
@@ -33,9 +35,9 @@ function App() {
           <Route 
             path="/admin" 
             element={
-              <ProtectedRoute>
+              <AdminRoute>
                 <Admin />
-              </ProtectedRoute>
+              </AdminRoute>
             } 
           />
           <Route 
@@ -51,6 +53,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <NuevaReserva />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/pago/:reservaId" 
+            element={
+              <ProtectedRoute>
+                <Pago />
               </ProtectedRoute>
             } 
           />
