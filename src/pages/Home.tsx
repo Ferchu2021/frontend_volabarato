@@ -262,6 +262,39 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Call to Action - Crear Cuenta */}
+      <section className="cta-register section">
+        <div className="container">
+          <div className="cta-content">
+            <h2>¿Listo para tu próxima aventura?</h2>
+            <p>
+              Creá tu cuenta gratis y accedé a beneficios exclusivos, descuentos especiales 
+              y la posibilidad de gestionar todas tus reservas en un solo lugar.
+            </p>
+            <div className="cta-benefits">
+              <div className="benefit-item">
+                <FaPlane />
+                <span>Reservá tus viajes favoritos</span>
+              </div>
+              <div className="benefit-item">
+                <FaHeart />
+                <span>Accedé a ofertas exclusivas</span>
+              </div>
+              <div className="benefit-item">
+                <FaStar />
+                <span>Gestioná todas tus reservas</span>
+              </div>
+            </div>
+            <Link to="/registro" className="btn btn-primary btn-large">
+              Crear Cuenta Gratis
+            </Link>
+            <p className="cta-footer">
+              ¿Ya tenés cuenta? <Link to="/login" className="link">Iniciá sesión</Link>
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Newsletter Section */}
       <section className="newsletter">
         <div className="container">
