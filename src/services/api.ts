@@ -4,6 +4,9 @@
 // En producción: configurar VITE_API_BASE_URL en el archivo .env
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api';
 
+// Log para verificar la URL base configurada
+console.log('🔧 API_BASE_URL configurada:', API_BASE_URL);
+
 // Interfaces para las respuestas del backend
 export interface ApiResponse<T> {
   data?: T;
@@ -244,6 +247,8 @@ class ApiService {
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     
+    console.log(`[API] Making request to: ${url}`, { method: options.method || 'GET' });
+    
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
@@ -263,6 +268,8 @@ class ApiService {
     try {
       const response = await fetch(url, config);
       
+      console.log(`[API] Response status: ${response.status} for ${url}`);
+      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error('API Error Response:', errorData);
@@ -273,9 +280,14 @@ class ApiService {
         throw new Error(errorMessage);
       }
 
-      return await response.json();
-    } catch (error) {
-      console.error('API Request failed:', error);
+      const data = await response.json();
+      console.log(`[API] Success response from ${url}:`, data);
+      return data;
+    } catch (error: any) {
+      console.error(`[API] Request failed for ${url}:`, error);
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        throw new Error(`No se pudo conectar con el servidor. Verifica que el backend esté corriendo en ${this.baseURL}`);
+      }
       throw error;
     }
   }
