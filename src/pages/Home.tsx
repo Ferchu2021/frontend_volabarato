@@ -48,18 +48,24 @@ const Home = () => {
     const loadDestacados = async () => {
       try {
         setLoadingDestacados(true)
-        console.log('🔄 Cargando paquetes destacados...')
+        if (import.meta.env.MODE === 'development') {
+          console.log('🔄 Cargando paquetes destacados...')
+        }
         const paquetes = await apiService.getPaquetes()
-        console.log('✅ Paquetes cargados:', paquetes.length)
+        if (import.meta.env.MODE === 'development') {
+          console.log('✅ Paquetes cargados:', paquetes.length)
+        }
         // Filtrar solo los paquetes destacados y activos
         const destacadosData = paquetes.filter(p => p.destacado && p.activo)
-        console.log('⭐ Paquetes destacados encontrados:', destacadosData.length)
+        if (import.meta.env.MODE === 'development') {
+          console.log('⭐ Paquetes destacados encontrados:', destacadosData.length)
+        }
         // Limitar a 4 para mostrar en el grid
         setDestacados(destacadosData.slice(0, 4))
       } catch (error: any) {
         console.error('❌ Error cargando paquetes destacados:', error)
-        if (error.message && error.message.includes('No se pudo conectar')) {
-          console.error('⚠️ El backend no está respondiendo. Verifica que esté corriendo en http://localhost:4000')
+        if (import.meta.env.DEV && error.message && error.message.includes('No se pudo conectar')) {
+          console.error('⚠️ El backend no está respondiendo.')
         }
         setDestacados([])
       } finally {

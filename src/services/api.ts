@@ -4,8 +4,10 @@
 // En producción: configurar VITE_API_BASE_URL en el archivo .env
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api';
 
-// Log para verificar la URL base configurada
-console.log('🔧 API_BASE_URL configurada:', API_BASE_URL);
+// Log para verificar la URL base configurada (solo en desarrollo)
+if (import.meta.env.MODE === 'development') {
+  console.log('🔧 API_BASE_URL configurada:', API_BASE_URL);
+}
 
 // Interfaces para las respuestas del backend
 export interface ApiResponse<T> {
@@ -247,7 +249,10 @@ class ApiService {
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     
-    console.log(`[API] Making request to: ${url}`, { method: options.method || 'GET' });
+    // Logs solo en desarrollo
+    if (import.meta.env.MODE === 'development') {
+      console.log(`[API] Making request to: ${url}`, { method: options.method || 'GET' });
+    }
     
     const config: RequestInit = {
       headers: {
@@ -268,11 +273,16 @@ class ApiService {
     try {
       const response = await fetch(url, config);
       
-      console.log(`[API] Response status: ${response.status} for ${url}`);
+      // Logs solo en desarrollo
+      if (import.meta.env.MODE === 'development') {
+        console.log(`[API] Response status: ${response.status} for ${url}`);
+      }
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('API Error Response:', errorData);
+        if (import.meta.env.MODE === 'development') {
+          console.error('API Error Response:', errorData);
+        }
         // Incluir mensaje del backend si está disponible
         const errorMessage = errorData.message 
           ? `${errorData.error || 'Error'}: ${errorData.message}`
@@ -281,12 +291,16 @@ class ApiService {
       }
 
       const data = await response.json();
-      console.log(`[API] Success response from ${url}:`, data);
+      if (import.meta.env.MODE === 'development') {
+        console.log(`[API] Success response from ${url}:`, data);
+      }
       return data;
     } catch (error: any) {
-      console.error(`[API] Request failed for ${url}:`, error);
+      if (import.meta.env.MODE === 'development') {
+        console.error(`[API] Request failed for ${url}:`, error);
+      }
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        throw new Error(`No se pudo conectar con el servidor. Verifica que el backend esté corriendo en ${this.baseURL}`);
+        throw new Error(`No se pudo conectar con el servidor. Por favor, intenta más tarde.`);
       }
       throw error;
     }
@@ -402,6 +416,26 @@ class ApiService {
 
   async getPaqueteById(id: string): Promise<Paquete> {
     return this.request<Paquete>(`/paquete/${id}`);
+  }
+
+  async createPaquete(data: Partial<Paquete>): Promise<{ message: string; paquete: Paquete }> {
+    return this.request<{ message: string; paquete: Paquete }>('/paquete', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updatePaquete(id: string, data: Partial<Paquete>): Promise<{ message: string; paquete: Paquete }> {
+    return this.request<{ message: string; paquete: Paquete }>(`/paquete/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deletePaquete(id: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/paquete/${id}`, {
+      method: 'DELETE',
+    });
   }
 
   // Métodos para gestión de usuarios

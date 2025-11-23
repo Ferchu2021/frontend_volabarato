@@ -54,9 +54,13 @@ const Travels = () => {
         setLoading(true)
         setError(null)
         const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api'
-        console.log('🔄 Cargando paquetes desde:', apiUrl)
+        if (import.meta.env.MODE === 'development') {
+          console.log('🔄 Cargando paquetes desde:', apiUrl)
+        }
         const paquetes = await apiService.getPaquetes()
-        console.log('✅ Paquetes cargados exitosamente:', paquetes.length, 'paquetes')
+        if (import.meta.env.MODE === 'development') {
+          console.log('✅ Paquetes cargados exitosamente:', paquetes.length, 'paquetes')
+        }
         
         // Convertir paquetes a formato Travel
         const travelsFromPaquetes: Travel[] = paquetes
@@ -88,7 +92,7 @@ const Travels = () => {
           const maxPrice = Math.max(...travelsFromPaquetes.map(t => t.price))
           const minPrice = Math.min(...travelsFromPaquetes.map(t => t.price))
           setPriceRange(prev => ({
-            min: prev.min,
+            min: Math.min(prev.min, Math.max(0, minPrice - 10000)), // Ajustar mínimo con margen
             max: Math.max(prev.max, maxPrice + 50000) // Agregar margen
           }))
         }
@@ -102,7 +106,7 @@ const Travels = () => {
           status: error?.response?.status,
           data: error?.response?.data
         })
-        const errorMessage = error?.message || 'Error al cargar los paquetes. Verifica que el backend esté corriendo en http://localhost:4000'
+        const errorMessage = error?.message || 'Error al cargar los paquetes. Por favor, intenta más tarde.'
         setError(errorMessage)
         setTravels([])
         setFilteredTravels([])
@@ -116,12 +120,14 @@ const Travels = () => {
   useEffect(() => {
     let filtered = travels
 
-    console.log('🔍 Aplicando filtros:', {
-      totalTravels: travels.length,
-      searchTerm,
-      selectedCategory,
-      priceRange
-    })
+    if (import.meta.env.MODE === 'development') {
+      console.log('🔍 Aplicando filtros:', {
+        totalTravels: travels.length,
+        searchTerm,
+        selectedCategory,
+        priceRange
+      })
+    }
 
     // Filtro por término de búsqueda
     if (searchTerm) {
@@ -133,14 +139,18 @@ const Travels = () => {
         const categoryMatch = travel.category?.toLowerCase().includes(searchTerm.toLowerCase())
         return titleMatch || destMatch || descMatch || categoryMatch
       })
-      console.log(`🔍 Búsqueda "${searchTerm}": ${beforeSearch} -> ${filtered.length} resultados`)
+      if (import.meta.env.MODE === 'development') {
+        console.log(`🔍 Búsqueda "${searchTerm}": ${beforeSearch} -> ${filtered.length} resultados`)
+      }
     }
 
     // Filtro por categoría
     if (selectedCategory) {
       const beforeCategory = filtered.length
       filtered = filtered.filter(travel => travel.category === selectedCategory)
-      console.log(`🏷️ Categoría "${selectedCategory}": ${beforeCategory} -> ${filtered.length} resultados`)
+      if (import.meta.env.MODE === 'development') {
+        console.log(`🏷️ Categoría "${selectedCategory}": ${beforeCategory} -> ${filtered.length} resultados`)
+      }
     }
 
     // Filtro por rango de precio
@@ -152,13 +162,16 @@ const Travels = () => {
       }
       const inRange = travel.price >= priceRange.min && travel.price <= priceRange.max
       if (!inRange) {
-        console.log(`💰 Precio fuera de rango: ${travel.title} (${travel.price}) no está en [${priceRange.min}, ${priceRange.max}]`)
+        if (import.meta.env.MODE === 'development') {
+          console.log(`💰 Precio fuera de rango: ${travel.title} (${travel.price}) no está en [${priceRange.min}, ${priceRange.max}]`)
+        }
       }
       return inRange
     })
-    console.log(`💰 Precio [${priceRange.min}-${priceRange.max}]: ${beforePrice} -> ${filtered.length} resultados`)
-
-    console.log('✅ Resultados finales:', filtered.length)
+    if (import.meta.env.MODE === 'development') {
+      console.log(`💰 Precio [${priceRange.min}-${priceRange.max}]: ${beforePrice} -> ${filtered.length} resultados`)
+      console.log('✅ Resultados finales:', filtered.length)
+    }
     setFilteredTravels(filtered)
   }, [searchTerm, selectedCategory, priceRange, travels])
 
@@ -284,7 +297,7 @@ const Travels = () => {
             <h3>Error al cargar viajes</h3>
             <p>{error}</p>
             <p style={{ marginTop: '1rem', fontSize: '0.875rem', color: '#666' }}>
-              Verifica que el backend esté corriendo en http://localhost:4000
+              Si el problema persiste, contacta al soporte técnico.
             </p>
           </div>
         )}
