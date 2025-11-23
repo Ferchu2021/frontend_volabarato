@@ -30,6 +30,7 @@ import UserModal from '../components/admin/UserModal'
 import ConfirmModal from '../components/common/ConfirmModal'
 import { apiService, Paquete } from '../services/api'
 import { convertCurrency } from '../utils/currency'
+import { getCategoryFromDestination } from '../utils/categoryUtils'
 import './Admin.css'
 
 interface Travel {
@@ -232,7 +233,7 @@ const Admin = () => {
     duration: p.duracion || p.descripcion || 'Consultar',
     image: p.imagenes && p.imagenes.length > 0 ? p.imagenes[0] : '/images/travel-1.jpg',
     description: p.descripcion || `Paquete de viaje a ${p.destino}`,
-    category: p.categoria || p.destino.split(',')[0] || 'General'
+    category: getCategoryFromDestination(p.destino || '', p.categoria)
   }))
 
   // Usar suscriptores de Redux (conectados con backend real)

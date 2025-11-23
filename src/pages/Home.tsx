@@ -4,6 +4,7 @@ import { FaPlane, FaMapMarkedAlt, FaHeart, FaStar } from 'react-icons/fa'
 import { apiService, Paquete } from '../services/api'
 import ImageGallery from '../components/common/ImageGallery'
 import NewsletterForm from '../components/forms/NewsletterForm'
+import { getCategoryFromDestination } from '../utils/categoryUtils'
 import './Home.css'
 
 const Home = () => {
@@ -47,13 +48,19 @@ const Home = () => {
     const loadDestacados = async () => {
       try {
         setLoadingDestacados(true)
+        console.log('🔄 Cargando paquetes destacados...')
         const paquetes = await apiService.getPaquetes()
+        console.log('✅ Paquetes cargados:', paquetes.length)
         // Filtrar solo los paquetes destacados y activos
         const destacadosData = paquetes.filter(p => p.destacado && p.activo)
+        console.log('⭐ Paquetes destacados encontrados:', destacadosData.length)
         // Limitar a 4 para mostrar en el grid
         setDestacados(destacadosData.slice(0, 4))
-      } catch (error) {
-        console.error('Error cargando paquetes destacados:', error)
+      } catch (error: any) {
+        console.error('❌ Error cargando paquetes destacados:', error)
+        if (error.message && error.message.includes('No se pudo conectar')) {
+          console.error('⚠️ El backend no está respondiendo. Verifica que esté corriendo en http://localhost:4000')
+        }
         setDestacados([])
       } finally {
         setLoadingDestacados(false)
@@ -239,7 +246,7 @@ const Home = () => {
                       <h3>{paquete.nombre}</h3>
                       <p>{paquete.descripcion || `Descubrí ${paquete.destino} con este increíble paquete de viaje.`}</p>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
-                        <span className="proposal-tag">{paquete.categoria || 'General'}</span>
+                        <span className="proposal-tag">{getCategoryFromDestination(paquete.destino || '', paquete.categoria)}</span>
                         {paquete.precio && (
                           <span style={{ 
                             fontWeight: '600', 

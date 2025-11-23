@@ -6,6 +6,7 @@ import { apiService, Paquete } from '../services/api'
 import ImageGallery from '../components/common/ImageGallery'
 import Badge from '../components/common/Badge'
 import SkeletonLoader from '../components/common/SkeletonLoader'
+import { getCategoryFromDestination } from '../utils/categoryUtils'
 import './Travels.css'
 
 interface Travel {
@@ -52,29 +53,32 @@ const Travels = () => {
       try {
         setLoading(true)
         setError(null)
-        console.log('Cargando paquetes desde:', import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api')
+        const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api'
+        console.log('🔄 Cargando paquetes desde:', apiUrl)
         const paquetes = await apiService.getPaquetes()
-        console.log('Paquetes cargados:', paquetes)
+        console.log('✅ Paquetes cargados exitosamente:', paquetes.length, 'paquetes')
         
         // Convertir paquetes a formato Travel
-        const travelsFromPaquetes: Travel[] = paquetes.map((paquete) => ({
-          id: paquete._id,
-          title: paquete.nombre,
-          destination: paquete.destino,
-          price: paquete.precio,
-          currency: paquete.moneda || 'USD', // Usar la moneda del paquete
-          duration: paquete.duracion || paquete.descripcion || 'Consultar',
-          images: paquete.imagenes && paquete.imagenes.length > 0 
-            ? paquete.imagenes 
-            : ['/images/travel-1.jpg'], // Fallback si no hay imágenes
-          description: paquete.descripcion || `Descubrí ${paquete.destino} con este increíble paquete de viaje.`,
-          category: paquete.categoria || paquete.destino.split(',')[0] || 'General',
-          destacado: paquete.destacado,
-          precioAnterior: paquete.precioAnterior,
-          cuposDisponibles: paquete.cuposDisponibles,
-          incluye: paquete.incluye,
-          paquete: paquete // Guardar referencia completa
-        }))
+        const travelsFromPaquetes: Travel[] = paquetes
+          .filter(paquete => paquete && paquete._id && paquete.nombre && paquete.destino) // Filtrar paquetes inválidos
+          .map((paquete) => ({
+            id: paquete._id,
+            title: paquete.nombre,
+            destination: paquete.destino || 'Destino no especificado',
+            price: paquete.precio || 0,
+            currency: paquete.moneda || 'USD', // Usar la moneda del paquete
+            duration: paquete.duracion || paquete.descripcion || 'Consultar',
+            images: paquete.imagenes && paquete.imagenes.length > 0 
+              ? paquete.imagenes 
+              : ['/images/travel-1.jpg'], // Fallback si no hay imágenes
+            description: paquete.descripcion || `Descubrí ${paquete.destino || 'este destino'} con este increíble paquete de viaje.`,
+            category: getCategoryFromDestination(paquete.destino || '', paquete.categoria),
+            destacado: paquete.destacado,
+            precioAnterior: paquete.precioAnterior,
+            cuposDisponibles: paquete.cuposDisponibles,
+            incluye: paquete.incluye,
+            paquete: paquete // Guardar referencia completa
+          }))
         
         setTravels(travelsFromPaquetes)
         setFilteredTravels(travelsFromPaquetes)
