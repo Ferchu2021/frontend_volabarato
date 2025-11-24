@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { apiService } from '../services/api'
 import { FaEnvelope, FaArrowLeft, FaCheck, FaSpinner } from 'react-icons/fa'
@@ -11,7 +11,6 @@ interface ForgotPasswordFormData {
 }
 
 const ForgotPassword = () => {
-  const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)

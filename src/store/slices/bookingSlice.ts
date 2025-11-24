@@ -17,7 +17,7 @@ export interface Booking {
   cantidadPersonas: number
   precioTotal: number
   estado: 'pendiente' | 'confirmada' | 'cancelada' | 'completada'
-  metodoPago: 'efectivo' | 'tarjeta' | 'transferencia'
+  metodoPago: 'tarjeta' | 'transferencia' | 'deposito'
   observaciones?: string
   datosContacto: {
     nombre: string

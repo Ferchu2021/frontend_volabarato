@@ -1,0 +1,53 @@
+===========================================
+VARIABLES DE ENTORNO PARA VERCEL
+===========================================
+
+Copia y pega estas variables en Vercel cuando configures el proyecto.
+
+===========================================
+VARIABLES REQUERIDAS
+===========================================
+
+# API Backend
+VITE_API_BASE_URL
+https://backup-volabarato-1.onrender.com/api
+
+# Firebase Configuration
+VITE_FIREBASE_API_KEY
+AIzaSyD9rzm1vj6tLXbcEJqJ3TIvG1ZbNoPaH2A
+
+VITE_FIREBASE_AUTH_DOMAIN
+volabarato-c8c5a.firebaseapp.com
+
+VITE_FIREBASE_PROJECT_ID
+volabarato-c8c5a
+
+VITE_FIREBASE_STORAGE_BUCKET
+volabarato-c8c5a.firebasestorage.app
+
+VITE_FIREBASE_MESSAGING_SENDER_ID
+300565876308
+
+VITE_FIREBASE_APP_ID
+1:300565876308:web:b2777261b4069ad23967c1
+
+===========================================
+INSTRUCCIONES
+===========================================
+
+1. En Vercel, ve a tu proyecto
+2. Settings → Environment Variables
+3. Agrega cada variable una por una
+4. Selecciona los ambientes: Production, Preview, Development
+5. Guarda cada variable
+
+===========================================
+NOTAS IMPORTANTES
+===========================================
+
+- NO incluyas espacios antes o después del =
+- Copia exactamente los valores (sin comillas)
+- Asegúrate de seleccionar todos los ambientes
+
+===========================================
+

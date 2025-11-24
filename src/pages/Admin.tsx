@@ -13,12 +13,12 @@ import {
 import { 
   fetchUsers, 
   createUser, 
-  updateUser
+  updateUser,
+  deleteUser
 } from '../store/slices/userSlice'
 import { 
   fetchSubscribers,
-  deleteSubscriber,
-  Subscriber as ReduxSubscriber
+  deleteSubscriber
 } from '../store/slices/subscriberSlice'
 import { useNavigate } from 'react-router-dom'
 import { FaSignOutAlt, FaPlus, FaEdit, FaTrash, FaEye, FaCheck, FaUsers, FaFileExcel } from 'react-icons/fa'
@@ -33,17 +33,6 @@ import { convertCurrency } from '../utils/currency'
 import { getCategoryFromDestination } from '../utils/categoryUtils'
 import './Admin.css'
 
-interface Travel {
-  id: string
-  title: string
-  destination: string
-  price: number
-  currency?: string
-  duration: string
-  image: string
-  description: string
-  category: string
-}
 
 interface Subscriber {
   id: string
@@ -60,7 +49,7 @@ const Admin = () => {
   const navigate = useNavigate()
   const { bookings, loading, error, stats } = useAppSelector(state => state.bookings)
   const { users: adminUsers, loading: usersLoading } = useAppSelector(state => state.users)
-  const { subscribers: reduxSubscribers, loading: subscribersLoading } = useAppSelector(state => state.subscribers)
+  const { subscribers: reduxSubscribers } = useAppSelector(state => state.subscribers)
   
   const [activeTab, setActiveTab] = useState<'travels' | 'bookings' | 'subscribers' | 'users'>('bookings')
   const [showTravelModal, setShowTravelModal] = useState(false)
@@ -608,13 +597,16 @@ const Admin = () => {
           onClose={() => setShowTravelModal(false)}
           travel={selectedItem}
           action={action === 'delete' ? 'edit' : action}
-          onSave={(travelData) => {
-            if (action === 'create') {
-              setTravels(prev => [...prev, { ...travelData, id: Date.now().toString() }])
-            } else {
-              setTravels(prev => prev.map(t => t.id === String(travelData.id) ? { ...travelData, id: String(travelData.id) } : t))
+          onSave={async (travelData) => {
+            try {
+              // El modal maneja la creación/actualización internamente
+              // Solo cerramos el modal y recargamos los paquetes
+              setShowTravelModal(false)
+              const paquetesData = await apiService.getPaquetes()
+              setPaquetes(paquetesData)
+            } catch (error) {
+              console.error('Error al guardar viaje:', error)
             }
-            setShowTravelModal(false)
           }}
         />
       )}
@@ -710,20 +702,15 @@ const Admin = () => {
           onClose={() => setShowSubscriberModal(false)}
           subscriber={selectedItem}
           action={action === 'delete' ? 'edit' : action}
-          onSave={(subscriberData) => {
-            if (action === 'create') {
-              setSubscribers(prev => [
-                ...prev,
-                { ...subscriberData, id: Date.now().toString(), subscribedAt: new Date().toISOString() }
-              ])
-            } else {
-              setSubscribers(prev => prev.map(s => 
-                s.id === subscriberData.id 
-                  ? { ...subscriberData, id: String(subscriberData.id), subscribedAt: s.subscribedAt } 
-                  : s
-              ))
+          onSave={async (subscriberData) => {
+            try {
+              // El modal maneja la creación/actualización internamente
+              // Solo cerramos el modal y recargamos los suscriptores
+              setShowSubscriberModal(false)
+              dispatch(fetchSubscribers())
+            } catch (error) {
+              console.error('Error al guardar suscriptor:', error)
             }
-            setShowSubscriberModal(false)
           }}
         />
       )}

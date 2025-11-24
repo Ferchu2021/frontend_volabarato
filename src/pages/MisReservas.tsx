@@ -34,6 +34,7 @@ import './MisReservas.css'
 
 const MisReservas: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>()
+  const navigate = useNavigate()
   const { bookings, loading, error, filters, pagination } = useSelector((state: RootState) => state.bookings)
   
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)

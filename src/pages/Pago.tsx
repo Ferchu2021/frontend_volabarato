@@ -4,7 +4,6 @@ import { apiService, Pago as PagoType, CreatePagoRequest, Reserva } from '../ser
 import { motion } from 'framer-motion'
 import { 
   FaCreditCard, 
-  FaMoneyBillWave, 
   FaExchangeAlt,
   FaCheck,
   FaTimes,

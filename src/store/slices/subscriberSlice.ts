@@ -30,7 +30,7 @@ const initialState: SubscriberState = {
 // Async thunks - Conectados con el backend real
 export const fetchSubscribers = createAsyncThunk(
   'subscribers/fetchSubscribers',
-  async (params?: { activo?: boolean; limit?: number; page?: number }, { rejectWithValue }) => {
+  async (params: { activo?: boolean; limit?: number; page?: number } | undefined = undefined, { rejectWithValue }) => {
     try {
       const response = await apiService.getSuscriptores(params)
       return response.data

@@ -481,10 +481,6 @@ class ApiService {
     });
   }
 
-  async getUserById(id: string): Promise<User> {
-    return this.request<User>(`/user/${id}`);
-  }
-
   async updateCurrentUser(data: Partial<{ usuario: string }>): Promise<{ message: string; user: User }> {
     return this.request<{ message: string; user: User }>('/user/me', {
       method: 'PUT',

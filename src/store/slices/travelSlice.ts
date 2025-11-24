@@ -82,22 +82,23 @@ export const createTravel = createAsyncThunk(
     const { apiService } = await import('../../services/api')
     
     // Convertir Travel a formato Paquete
-    const paqueteData = {
+    const paqueteData: Partial<Paquete> = {
       nombre: travelData.title,
       destino: travelData.destination,
       descripcion: travelData.description,
       precio: travelData.price,
       duracion: travelData.duration,
-      fechaSalida: travelData.departureDate ? new Date(travelData.departureDate) : new Date(),
-      fechaRegreso: travelData.returnDate ? new Date(travelData.returnDate) : undefined,
+      fechaSalida: travelData.departureDate || undefined,
+      fechaRegreso: travelData.returnDate || undefined,
       imagenes: travelData.images,
       categoria: travelData.category,
       cuposDisponibles: travelData.availableSpots,
       activo: travelData.isActive,
-      fecha: travelData.departureDate ? new Date(travelData.departureDate) : new Date()
+      fecha: travelData.departureDate || new Date().toISOString()
     }
     
-    const nuevoPaquete = await apiService.createPaquete(paqueteData)
+    const response = await apiService.createPaquete(paqueteData)
+    const nuevoPaquete = response.paquete
     
     // Convertir de vuelta a Travel
     return {
@@ -140,7 +141,8 @@ export const updateTravel = createAsyncThunk(
     if (travelData.availableSpots !== undefined) updateData.cuposDisponibles = travelData.availableSpots
     if (travelData.isActive !== undefined) updateData.activo = travelData.isActive
     
-    const paqueteActualizado = await apiService.updatePaquete(id, updateData)
+    const response = await apiService.updatePaquete(id, updateData)
+    const paqueteActualizado = response.paquete
     
     // Convertir de vuelta a Travel
     return {

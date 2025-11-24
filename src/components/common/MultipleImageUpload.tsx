@@ -125,9 +125,6 @@ const MultipleImageUpload: React.FC<MultipleImageUploadProps> = ({
         <div className="multiple-image-upload__gallery">
           <ImageGallery
             images={images}
-            onImageRemove={handleRemoveImage}
-            editable={true}
-            maxImages={maxImages}
           />
         </div>
       )}

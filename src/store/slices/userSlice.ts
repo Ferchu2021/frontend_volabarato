@@ -33,7 +33,20 @@ export const fetchUsers = createAsyncThunk(
 
 export const createUser = createAsyncThunk(
   'users/createUser',
-  async (userData: { usuario: string; password: string; rol?: 'admin' | 'cliente' }, { rejectWithValue }) => {
+  async (userData: { 
+    usuario: string
+    password: string
+    nombreLegal: string
+    fechaNacimiento: string
+    nacionalidad: string
+    dni: string
+    cuilCuit?: string
+    numeroPasaporte: string
+    telefono: string
+    telefonoContacto: string
+    email: string
+    rol?: 'admin' | 'cliente'
+  }, { rejectWithValue }) => {
     try {
       const response = await apiService.registerUser(userData)
       return response.user
