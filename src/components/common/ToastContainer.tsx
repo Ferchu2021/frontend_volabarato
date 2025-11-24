@@ -23,10 +23,15 @@ interface ToastContainerProps {
 export const ToastProvider = ({ children }: ToastContainerProps) => {
   const [toasts, setToasts] = useState<Array<ToastProps & { id: string }>>([])
 
+  const removeToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id))
+  }, [])
+
   const showToast = useCallback((message: string, type: ToastProps['type'] = 'info', duration = 3000) => {
     const id = Date.now().toString() + Math.random().toString(36).substr(2, 9)
-    setToasts((prev) => [...prev, { id, message, type, duration, onClose: () => removeToast(id) }])
-  }, [])
+    const onClose = () => removeToast(id)
+    setToasts((prev) => [...prev, { id, message, type, duration, onClose }])
+  }, [removeToast])
 
   const removeToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id))
