@@ -597,7 +597,7 @@ const Admin = () => {
           onClose={() => setShowTravelModal(false)}
           travel={selectedItem}
           action={action === 'delete' ? 'edit' : action}
-          onSave={async (travelData) => {
+          onSave={async () => {
             try {
               // El modal maneja la creación/actualización internamente
               // Solo cerramos el modal y recargamos los paquetes
@@ -702,7 +702,7 @@ const Admin = () => {
           onClose={() => setShowSubscriberModal(false)}
           subscriber={selectedItem}
           action={action === 'delete' ? 'edit' : action}
-          onSave={async (subscriberData) => {
+          onSave={async () => {
             try {
               // El modal maneja la creación/actualización internamente
               // Solo cerramos el modal y recargamos los suscriptores

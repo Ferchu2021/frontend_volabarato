@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
+import { Paquete } from '../../services/api'
 
 export interface Travel {
   id: string
