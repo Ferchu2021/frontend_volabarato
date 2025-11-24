@@ -52,11 +52,21 @@ const Register = () => {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       // Preparar datos para el backend
+      // Asegurar que fechaNacimiento esté en formato ISO (YYYY-MM-DD)
+      let fechaNacimiento = data.fechaNacimiento
+      if (fechaNacimiento && !fechaNacimiento.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        // Si no está en formato YYYY-MM-DD, convertir
+        const fecha = new Date(fechaNacimiento)
+        if (!isNaN(fecha.getTime())) {
+          fechaNacimiento = fecha.toISOString().split('T')[0]
+        }
+      }
+      
       const cleanedData: any = {
         usuario: data.usuario.trim(),
         password: data.password,
         nombreLegal: data.nombreLegal.trim(),
-        fechaNacimiento: data.fechaNacimiento, // Se envía como string "YYYY-MM-DD", el backend lo convierte a Date
+        fechaNacimiento: fechaNacimiento, // Formato YYYY-MM-DD
         nacionalidad: data.nacionalidad.trim(),
         dni: data.dni.trim(),
         numeroPasaporte: data.numeroPasaporte.trim(),
