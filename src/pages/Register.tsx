@@ -51,18 +51,23 @@ const Register = () => {
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      const cleanedData = {
+      // Preparar datos para el backend
+      const cleanedData: any = {
         usuario: data.usuario.trim(),
         password: data.password,
         nombreLegal: data.nombreLegal.trim(),
-        fechaNacimiento: data.fechaNacimiento,
+        fechaNacimiento: data.fechaNacimiento, // Se envía como string "YYYY-MM-DD", el backend lo convierte a Date
         nacionalidad: data.nacionalidad.trim(),
         dni: data.dni.trim(),
-        cuilCuit: data.cuilCuit?.trim() || undefined,
         numeroPasaporte: data.numeroPasaporte.trim(),
         telefono: data.telefono.trim(),
         telefonoContacto: data.telefonoContacto.trim(),
         email: data.email.trim().toLowerCase()
+      }
+      
+      // Solo agregar cuilCuit si tiene valor (no string vacío)
+      if (data.cuilCuit && data.cuilCuit.trim() !== '') {
+        cleanedData.cuilCuit = data.cuilCuit.trim()
       }
       
       await dispatch(registerUser(cleanedData)).unwrap()

@@ -283,10 +283,12 @@ class ApiService {
         if (import.meta.env.MODE === 'development') {
           console.error('API Error Response:', errorData);
         }
-        // Incluir mensaje del backend si está disponible
-        const errorMessage = errorData.message 
-          ? `${errorData.error || 'Error'}: ${errorData.message}`
-          : errorData.error || `HTTP error! status: ${response.status}`;
+        // Incluir mensaje del backend si está disponible (priorizar details, luego message, luego error)
+        const errorMessage = errorData.details 
+          ? `${errorData.error || 'Error'}: ${errorData.details}`
+          : errorData.message 
+            ? `${errorData.error || 'Error'}: ${errorData.message}`
+            : errorData.error || `HTTP error! status: ${response.status}`;
         throw new Error(errorMessage);
       }
 
