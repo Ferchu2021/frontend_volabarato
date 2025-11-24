@@ -94,7 +94,7 @@ export const createTravel = createAsyncThunk(
       categoria: travelData.category,
       cuposDisponibles: travelData.availableSpots,
       activo: travelData.isActive,
-      fecha: travelData.departureDate || new Date().toISOString()
+      fecha: travelData.departureDate || new Date().toISOString().split('T')[0]
     }
     
     const response = await apiService.createPaquete(paqueteData)
@@ -128,14 +128,14 @@ export const updateTravel = createAsyncThunk(
     const { apiService } = await import('../../services/api')
     
     // Convertir Travel a formato Paquete para actualización
-    const updateData: any = {}
+    const updateData: Partial<Paquete> = {}
     if (travelData.title) updateData.nombre = travelData.title
     if (travelData.destination) updateData.destino = travelData.destination
     if (travelData.description) updateData.descripcion = travelData.description
     if (travelData.price !== undefined) updateData.precio = travelData.price
     if (travelData.duration) updateData.duracion = travelData.duration
-    if (travelData.departureDate) updateData.fechaSalida = new Date(travelData.departureDate)
-    if (travelData.returnDate) updateData.fechaRegreso = new Date(travelData.returnDate)
+    if (travelData.departureDate) updateData.fechaSalida = travelData.departureDate
+    if (travelData.returnDate) updateData.fechaRegreso = travelData.returnDate
     if (travelData.images) updateData.imagenes = travelData.images
     if (travelData.category) updateData.categoria = travelData.category
     if (travelData.availableSpots !== undefined) updateData.cuposDisponibles = travelData.availableSpots

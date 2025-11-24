@@ -33,10 +33,6 @@ export const ToastProvider = ({ children }: ToastContainerProps) => {
     setToasts((prev) => [...prev, { id, message, type, duration, onClose }])
   }, [removeToast])
 
-  const removeToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id))
-  }, [])
-
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
