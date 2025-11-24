@@ -12,6 +12,7 @@
   "dependencies": {
     "@reduxjs/toolkit": "^1.9.5",
     "@vercel/speed-insights": "^1.2.0",
+    "firebase": "^12.6.0",
     "framer-motion": "^10.12.16",
     "joi": "^17.9.2",
     "mongoose": "^8.19.1",

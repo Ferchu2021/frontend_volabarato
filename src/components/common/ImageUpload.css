@@ -45,6 +45,37 @@
   background: var(--bg-primary);
 }
 
+.image-upload__area.uploading {
+  border-color: var(--primary-color);
+  background: var(--bg-secondary);
+  cursor: wait;
+}
+
+.image-upload__uploading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+}
+
+.image-upload__uploading .spinner {
+  font-size: 2rem;
+  animation: spin 1s linear infinite;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .image-upload__placeholder {
   display: flex;
   flex-direction: column;

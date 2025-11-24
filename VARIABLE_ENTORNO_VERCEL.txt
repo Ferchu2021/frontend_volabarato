@@ -1,0 +1,39 @@
+===========================================
+VARIABLE DE ENTORNO PARA VERCEL
+===========================================
+
+Copia y pega esta variable en Vercel cuando configures el proyecto.
+
+===========================================
+VARIABLE REQUERIDA
+===========================================
+
+Key: VITE_API_BASE_URL
+Value: https://backup-volabarato-1.onrender.com/api
+
+Environment: 
+  ☑️ Production
+  ☑️ Preview  
+  ☑️ Development
+
+===========================================
+NOTAS IMPORTANTES
+===========================================
+
+- La URL debe terminar en /api (no solo /)
+- No debe tener espacios al inicio o final
+- Debe usar https:// (no http://)
+- El nombre de la variable es case-sensitive: VITE_API_BASE_URL
+
+===========================================
+VERIFICACIÓN
+===========================================
+
+Después del deployment, verifica en la consola del navegador:
+- Abre F12 → Console
+- Debe mostrar: "🔧 API_BASE_URL configurada: https://backup-volabarato-1.onrender.com/api"
+- No debe haber errores de CORS
+- Las peticiones a /api deben funcionar
+
+===========================================
+
