@@ -10,6 +10,19 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Separar vendor chunks para mejor caching
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'redux-vendor': ['@reduxjs/toolkit', 'react-redux'],
+          'ui-vendor': ['framer-motion', 'react-icons', 'swiper'],
+          'firebase-vendor': ['firebase'],
+          'utils-vendor': ['joi', 'xlsx']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 600 // Aumentar el límite a 600KB para evitar warnings
   }
 })
