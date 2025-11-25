@@ -80,6 +80,11 @@ const Register = () => {
         cleanedData.cuilCuit = data.cuilCuit.trim()
       }
       
+      // Log para debugging (solo en desarrollo)
+      if (import.meta.env.MODE === 'development') {
+        console.log('Datos a enviar al backend:', JSON.stringify(cleanedData, null, 2))
+      }
+      
       await dispatch(registerUser(cleanedData)).unwrap()
       // Redirigir al login después del registro exitoso
       navigate('/login', { 
