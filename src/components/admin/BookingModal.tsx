@@ -23,7 +23,7 @@ interface BookingModalProps {
   isOpen: boolean
   onClose: () => void
   booking?: Booking | null
-  action: 'create' | 'edit'
+  action: 'create' | 'edit' | 'view'
   onSave: (booking: Booking) => void
   travels?: Paquete[]
 }
@@ -72,7 +72,11 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave, travels = [] }
     <div className="modal-overlay" onClick={handleClose}>
       <div className="modal-content large" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>{action === 'create' ? 'Crear Nueva Reserva' : 'Editar Reserva'}</h3>
+          <h3>
+            {action === 'create' ? 'Crear Nueva Reserva' : 
+             action === 'edit' ? 'Editar Reserva' : 
+             'Detalles de la Reserva'}
+          </h3>
           <button className="modal-close" onClick={handleClose}>
             <FaTimes />
           </button>
@@ -85,6 +89,7 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave, travels = [] }
                 <label className="form-label">Viaje *</label>
                 <select
                   className={`form-input ${errors.travelId ? 'error' : ''}`}
+                  disabled={action === 'view'}
                   {...register('travelId', { 
                     required: 'El viaje es requerido'
                   })}
@@ -107,6 +112,7 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave, travels = [] }
                   type="text"
                   className={`form-input ${errors.customerName ? 'error' : ''}`}
                   placeholder="Nombre completo"
+                  disabled={action === 'view'}
                   {...register('customerName', { 
                     required: 'El nombre del cliente es requerido',
                     minLength: { value: 2, message: 'El nombre debe tener al menos 2 caracteres' }
@@ -125,6 +131,7 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave, travels = [] }
                   type="email"
                   className={`form-input ${errors.customerEmail ? 'error' : ''}`}
                   placeholder="cliente@email.com"
+                  disabled={action === 'view'}
                   {...register('customerEmail', { 
                     required: 'El email es requerido',
                     pattern: {
@@ -144,6 +151,7 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave, travels = [] }
                   type="tel"
                   className={`form-input ${errors.customerPhone ? 'error' : ''}`}
                   placeholder="+54 9 341 123-4567"
+                  disabled={action === 'view'}
                   {...register('customerPhone', { 
                     required: 'El teléfono es requerido',
                     minLength: { value: 10, message: 'El teléfono debe tener al menos 10 caracteres' }
@@ -162,6 +170,7 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave, travels = [] }
                   type="date"
                   className={`form-input ${errors.travelDate ? 'error' : ''}`}
                   min={new Date().toISOString().split('T')[0]}
+                  disabled={action === 'view'}
                   {...register('travelDate', { 
                     required: 'La fecha del viaje es requerida',
                     validate: (value) => {
@@ -185,6 +194,7 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave, travels = [] }
                   placeholder="1"
                   min="1"
                   max="50"
+                  disabled={action === 'view'}
                   {...register('passengers', { 
                     required: 'El número de pasajeros es requerido',
                     min: { value: 1, message: 'Debe haber al menos 1 pasajero' },
@@ -208,6 +218,7 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave, travels = [] }
                     placeholder="0.00"
                     min="0"
                     style={{ flex: '1' }}
+                    disabled={action === 'view'}
                     {...register('totalPrice', {
                       required: 'El precio es requerido',
                       min: { value: 0.01, message: 'El precio debe ser mayor a 0' }
@@ -216,6 +227,7 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave, travels = [] }
                   <select
                     className={`form-input ${errors.currency ? 'error' : ''}`}
                     style={{ width: '120px' }}
+                    disabled={action === 'view'}
                     {...register('currency', { required: 'La moneda es requerida' })}
                   >
                     <option value="ARS">ARS</option>
@@ -234,6 +246,7 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave, travels = [] }
                 <label className="form-label">Método de Pago *</label>
                 <select
                   className={`form-input ${errors.paymentMethod ? 'error' : ''}`}
+                  disabled={action === 'view'}
                   {...register('paymentMethod', { 
                     required: 'El método de pago es requerido'
                   })}
@@ -254,19 +267,28 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave, travels = [] }
                 className="form-input form-textarea"
                 placeholder="Notas adicionales sobre la reserva..."
                 rows={3}
+                disabled={action === 'view'}
                 {...register('notes')}
               />
             </div>
           </div>
           
           <div className="modal-footer">
-            <button type="button" className="btn btn-outline" onClick={handleClose}>
-              Cancelar
-            </button>
-            <button type="submit" className="btn btn-primary">
-              <FaSave />
-              {action === 'create' ? 'Crear Reserva' : 'Guardar Cambios'}
-            </button>
+            {action === 'view' ? (
+              <button type="button" className="btn btn-primary" onClick={handleClose}>
+                Cerrar
+              </button>
+            ) : (
+              <>
+                <button type="button" className="btn btn-outline" onClick={handleClose}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  <FaSave />
+                  {action === 'create' ? 'Crear Reserva' : 'Guardar Cambios'}
+                </button>
+              </>
+            )}
           </div>
         </form>
       </div>

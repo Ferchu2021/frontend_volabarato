@@ -466,7 +466,11 @@ const Admin = () => {
                           <div className="action-buttons">
                             <button 
                               className="btn-icon" 
-                              onClick={() => setSelectedItem(booking)}
+                              onClick={() => {
+                                setSelectedItem(booking)
+                                setAction('view')
+                                setShowBookingModal(true)
+                              }}
                               title="Ver detalles"
                             >
                               <FaEye />
