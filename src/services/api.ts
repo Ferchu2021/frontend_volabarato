@@ -455,27 +455,12 @@ class ApiService {
     email: string
     rol?: 'admin' | 'cliente'
   }): Promise<{ message: string; user: User }> {
-    // Para registro, no enviar token de autenticación
-    const url = `${this.baseURL}/user/register`;
-    const config: RequestInit = {
+    // La ruta de registro es pública y no requiere token
+    // Usamos request() pero sin token (el método request solo agrega token si existe)
+    return this.request<{ message: string; user: User }>('/user/register', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(data),
-    };
-    
-    const response = await fetch(url, config);
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      const errorMessage = errorData.details 
-        ? `${errorData.error || 'Error'}: ${errorData.details}`
-        : errorData.message || errorData.error || `HTTP error! status: ${response.status}`;
-      throw new Error(errorMessage);
-    }
-    
-    return response.json();
+    });
   }
 
   async getUsers(): Promise<User[]> {
