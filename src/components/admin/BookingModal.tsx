@@ -72,6 +72,11 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave, travels = [] }
 
   if (!isOpen) return null
 
+  // Debug: verificar que el modal recibe los datos correctamente
+  if (import.meta.env.MODE === 'development') {
+    console.log('📋 BookingModal - action:', action, 'booking:', booking, 'isOpen:', isOpen)
+  }
+
   return (
     <div className="modal-overlay" onClick={handleClose}>
       <div className="modal-content large" onClick={(e) => e.stopPropagation()}>

@@ -467,9 +467,11 @@ const Admin = () => {
                             <button 
                               className="btn-icon" 
                               onClick={() => {
+                                console.log('👁️ Click en ver detalles de reserva:', booking)
                                 setSelectedItem(booking)
                                 setAction('view')
                                 setShowBookingModal(true)
+                                console.log('✅ Modal debería abrirse ahora')
                               }}
                               title="Ver detalles"
                             >
