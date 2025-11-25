@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { FaPlane, FaMapMarkedAlt, FaHeart, FaStar } from 'react-icons/fa'
 import { apiService, Paquete } from '../services/api'
-import ImageGallery from '../components/common/ImageGallery'
 import NewsletterForm from '../components/forms/NewsletterForm'
+import { getCategoryFromDestination } from '../utils/categoryUtils'
 import './Home.css'
 
 const Home = () => {
@@ -47,13 +47,25 @@ const Home = () => {
     const loadDestacados = async () => {
       try {
         setLoadingDestacados(true)
+        if (import.meta.env.MODE === 'development') {
+          console.log('🔄 Cargando paquetes destacados...')
+        }
         const paquetes = await apiService.getPaquetes()
+        if (import.meta.env.MODE === 'development') {
+          console.log('✅ Paquetes cargados:', paquetes.length)
+        }
         // Filtrar solo los paquetes destacados y activos
         const destacadosData = paquetes.filter(p => p.destacado && p.activo)
+        if (import.meta.env.MODE === 'development') {
+          console.log('⭐ Paquetes destacados encontrados:', destacadosData.length)
+        }
         // Limitar a 4 para mostrar en el grid
         setDestacados(destacadosData.slice(0, 4))
-      } catch (error) {
-        console.error('Error cargando paquetes destacados:', error)
+      } catch (error: any) {
+        console.error('❌ Error cargando paquetes destacados:', error)
+        if (import.meta.env.DEV && error.message && error.message.includes('No se pudo conectar')) {
+          console.error('⚠️ El backend no está respondiendo.')
+        }
         setDestacados([])
       } finally {
         setLoadingDestacados(false)
@@ -239,7 +251,7 @@ const Home = () => {
                       <h3>{paquete.nombre}</h3>
                       <p>{paquete.descripcion || `Descubrí ${paquete.destino} con este increíble paquete de viaje.`}</p>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
-                        <span className="proposal-tag">{paquete.categoria || 'General'}</span>
+                        <span className="proposal-tag">{getCategoryFromDestination(paquete.destino || '', paquete.categoria)}</span>
                         {paquete.precio && (
                           <span style={{ 
                             fontWeight: '600', 
@@ -248,7 +260,7 @@ const Home = () => {
                           }}>
                             Desde {new Intl.NumberFormat('es-AR', {
                               style: 'currency',
-                              currency: 'ARS'
+                              currency: paquete.moneda || 'USD'
                             }).format(paquete.precio)}
                           </span>
                         )}
@@ -259,6 +271,39 @@ const Home = () => {
               })}
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Call to Action - Crear Cuenta */}
+      <section className="cta-register section">
+        <div className="container">
+          <div className="cta-content">
+            <h2>¿Listo para tu próxima aventura?</h2>
+            <p>
+              Creá tu cuenta gratis y accedé a beneficios exclusivos, descuentos especiales 
+              y la posibilidad de gestionar todas tus reservas en un solo lugar.
+            </p>
+            <div className="cta-benefits">
+              <div className="benefit-item">
+                <FaPlane />
+                <span>Reservá tus viajes favoritos</span>
+              </div>
+              <div className="benefit-item">
+                <FaHeart />
+                <span>Accedé a ofertas exclusivas</span>
+              </div>
+              <div className="benefit-item">
+                <FaStar />
+                <span>Gestioná todas tus reservas</span>
+              </div>
+            </div>
+            <Link to="/registro" className="btn btn-primary btn-large">
+              Crear Cuenta Gratis
+            </Link>
+            <p className="cta-footer">
+              ¿Ya tenés cuenta? <Link to="/login" className="link">Iniciá sesión</Link>
+            </p>
+          </div>
         </div>
       </section>
 

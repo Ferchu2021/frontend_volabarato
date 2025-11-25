@@ -4,6 +4,7 @@ import { apiService, LoginRequest, handleApiError } from '../../services/api'
 interface User {
   _id: string
   usuario: string
+  rol?: 'admin' | 'cliente'
 }
 
 interface AuthState {
@@ -31,7 +32,8 @@ export const loginUser = createAsyncThunk(
       
       const user: User = {
         _id: tokenPayload._id,
-        usuario: tokenPayload.usuario
+        usuario: tokenPayload.usuario,
+        rol: tokenPayload.rol || 'cliente'
       }
       
       return user
@@ -45,6 +47,30 @@ export const logoutUser = createAsyncThunk(
   'auth/logout',
   async () => {
     await apiService.logout()
+  }
+)
+
+export const registerUser = createAsyncThunk(
+  'auth/register',
+  async (userData: {
+    usuario: string
+    password: string
+    nombreLegal: string
+    fechaNacimiento: string
+    nacionalidad: string
+    dni: string
+    cuilCuit?: string
+    numeroPasaporte: string
+    telefono: string
+    telefonoContacto: string
+    email: string
+  }, { rejectWithValue }) => {
+    try {
+      const response = await apiService.registerUser(userData)
+      return response.user
+    } catch (error) {
+      return rejectWithValue(handleApiError(error))
+    }
   }
 )
 
@@ -65,7 +91,8 @@ export const checkAuthStatus = createAsyncThunk(
         
         const user: User = {
           _id: tokenPayload._id,
-          usuario: tokenPayload.usuario
+          usuario: tokenPayload.usuario,
+          rol: tokenPayload.rol || 'cliente'
         }
         
         return user
@@ -108,6 +135,20 @@ const authSlice = createSlice({
         state.isAuthenticated = false
         state.error = null
       })
+      .addCase(registerUser.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(registerUser.fulfilled, (state) => {
+        state.loading = false
+        state.error = null
+        // No autenticamos automáticamente después del registro
+        // El usuario debe iniciar sesión
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string
+      })
       .addCase(checkAuthStatus.pending, (state) => {
         state.loading = true
       })
@@ -115,6 +156,11 @@ const authSlice = createSlice({
         state.loading = false
         state.user = action.payload
         state.isAuthenticated = !!action.payload
+      })
+      .addCase(checkAuthStatus.rejected, (state) => {
+        state.user = null
+        state.isAuthenticated = false
+        state.loading = false
       })
   },
 })

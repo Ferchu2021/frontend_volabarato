@@ -4,6 +4,11 @@
 // En producción: configurar VITE_API_BASE_URL en el archivo .env
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api';
 
+// Log para verificar la URL base configurada (solo en desarrollo)
+if (import.meta.env.MODE === 'development') {
+  console.log('🔧 API_BASE_URL configurada:', API_BASE_URL);
+}
+
 // Interfaces para las respuestas del backend
 export interface ApiResponse<T> {
   data?: T;
@@ -37,7 +42,7 @@ export interface Reserva {
   cantidadPersonas: number;
   precioTotal: number;
   estado: 'pendiente' | 'confirmada' | 'cancelada' | 'completada';
-  metodoPago: 'efectivo' | 'tarjeta' | 'transferencia';
+  metodoPago: 'tarjeta' | 'transferencia' | 'deposito';
   observaciones?: string;
   datosContacto: {
     nombre: string;
@@ -53,8 +58,9 @@ export interface CreateReservaRequest {
   fechaViaje: string;
   cantidadPersonas: number;
   precioTotal: number;
-  metodoPago: 'efectivo' | 'tarjeta' | 'transferencia';
+  metodoPago: 'tarjeta' | 'transferencia' | 'deposito';
   observaciones?: string;
+  usuario?: string; // ID del usuario
   datosContacto: {
     nombre: string;
     email: string;
@@ -85,6 +91,7 @@ export interface Paquete {
   precio: number;
   descripcion?: string;
   activo: boolean;
+  moneda?: string; // "USD", "ARS", "BRL", "MXN", etc.
   // Nuevos campos para información detallada
   imagenes?: string[]; // Múltiples imágenes por paquete
   duracion?: string; // "7 días / 6 noches"
@@ -140,6 +147,77 @@ export interface UpdateSuscriptorRequest {
   activo?: boolean;
 }
 
+// Interfaces para Pagos
+export interface Pago {
+  _id: string;
+  reserva: string | Reserva;
+  metodoPago: 'tarjeta' | 'transferencia' | 'deposito';
+  monto: number;
+  moneda: string;
+  estado: 'pendiente' | 'procesando' | 'completado' | 'rechazado' | 'cancelado';
+  fechaPago?: string;
+  fechaVencimiento?: string;
+  referencia?: string;
+  datosPago?: {
+    numeroTarjeta?: string;
+    tipoTarjeta?: string;
+    marcaTarjeta?: string;
+    nombreTitular?: string;
+    mesVencimiento?: string;
+    anioVencimiento?: string;
+    numeroComprobante?: string;
+    banco?: string;
+    cuenta?: string;
+    lugarPago?: string;
+    recibidoPor?: string;
+  };
+  observaciones?: string;
+  fechaCreacion: string;
+  fechaActualizacion: string;
+}
+
+export interface CreatePagoRequest {
+  reserva: string;
+  metodoPago: 'tarjeta' | 'transferencia' | 'deposito';
+  monto: number;
+  moneda?: string;
+  fechaVencimiento?: string;
+  datosPago?: {
+    numeroTarjeta?: string;
+    tipoTarjeta?: string;
+    marcaTarjeta?: string;
+    nombreTitular?: string;
+    mesVencimiento?: string;
+    anioVencimiento?: string;
+    numeroComprobante?: string;
+    banco?: string;
+    cuenta?: string;
+    lugarPago?: string;
+    recibidoPor?: string;
+  };
+  observaciones?: string;
+}
+
+export interface UpdatePagoRequest {
+  estado?: 'pendiente' | 'procesando' | 'completado' | 'rechazado' | 'cancelado';
+  fechaPago?: string;
+  referencia?: string;
+  datosPago?: {
+    numeroTarjeta?: string;
+    tipoTarjeta?: string;
+    marcaTarjeta?: string;
+    nombreTitular?: string;
+    mesVencimiento?: string;
+    anioVencimiento?: string;
+    numeroComprobante?: string;
+    banco?: string;
+    cuenta?: string;
+    lugarPago?: string;
+    recibidoPor?: string;
+  };
+  observaciones?: string;
+}
+
 export interface LoginResponse {
   token: string;
 }
@@ -171,6 +249,11 @@ class ApiService {
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     
+    // Logs solo en desarrollo
+    if (import.meta.env.MODE === 'development') {
+      console.log(`[API] Making request to: ${url}`, { method: options.method || 'GET' });
+    }
+    
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
@@ -190,19 +273,37 @@ class ApiService {
     try {
       const response = await fetch(url, config);
       
+      // Logs solo en desarrollo
+      if (import.meta.env.MODE === 'development') {
+        console.log(`[API] Response status: ${response.status} for ${url}`);
+      }
+      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('API Error Response:', errorData);
-        // Incluir mensaje del backend si está disponible
-        const errorMessage = errorData.message 
-          ? `${errorData.error || 'Error'}: ${errorData.message}`
-          : errorData.error || `HTTP error! status: ${response.status}`;
+        if (import.meta.env.MODE === 'development') {
+          console.error('API Error Response:', errorData);
+        }
+        // Incluir mensaje del backend si está disponible (priorizar details, luego message, luego error)
+        const errorMessage = errorData.details 
+          ? `${errorData.error || 'Error'}: ${errorData.details}`
+          : errorData.message 
+            ? `${errorData.error || 'Error'}: ${errorData.message}`
+            : errorData.error || `HTTP error! status: ${response.status}`;
         throw new Error(errorMessage);
       }
 
-      return await response.json();
-    } catch (error) {
-      console.error('API Request failed:', error);
+      const data = await response.json();
+      if (import.meta.env.MODE === 'development') {
+        console.log(`[API] Success response from ${url}:`, data);
+      }
+      return data;
+    } catch (error: any) {
+      if (import.meta.env.MODE === 'development') {
+        console.error(`[API] Request failed for ${url}:`, error);
+      }
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        throw new Error(`No se pudo conectar con el servidor. Por favor, intenta más tarde.`);
+      }
       throw error;
     }
   }
@@ -244,11 +345,13 @@ class ApiService {
 
   async getMisReservas(params?: {
     estado?: string;
+    usuarioId?: string;
     limit?: number;
     page?: number;
   }): Promise<PaginatedResponse<Reserva>> {
     const queryParams = new URLSearchParams();
     if (params?.estado) queryParams.append('estado', params.estado);
+    if (params?.usuarioId) queryParams.append('usuarioId', params.usuarioId);
     if (params?.limit) queryParams.append('limit', params.limit.toString());
     if (params?.page) queryParams.append('page', params.page.toString());
 
@@ -317,8 +420,43 @@ class ApiService {
     return this.request<Paquete>(`/paquete/${id}`);
   }
 
+  async createPaquete(data: Partial<Paquete>): Promise<{ message: string; paquete: Paquete }> {
+    return this.request<{ message: string; paquete: Paquete }>('/paquete', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updatePaquete(id: string, data: Partial<Paquete>): Promise<{ message: string; paquete: Paquete }> {
+    return this.request<{ message: string; paquete: Paquete }>(`/paquete/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deletePaquete(id: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/paquete/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Métodos para gestión de usuarios
-  async registerUser(data: { usuario: string; password: string }): Promise<{ message: string; user: User }> {
+  async registerUser(data: {
+    usuario: string
+    password: string
+    nombreLegal: string
+    fechaNacimiento: string
+    nacionalidad: string
+    dni: string
+    cuilCuit?: string
+    numeroPasaporte: string
+    telefono: string
+    telefonoContacto: string
+    email: string
+    rol?: 'admin' | 'cliente'
+  }): Promise<{ message: string; user: User }> {
+    // La ruta de registro es pública y no requiere token
+    // Usamos request() pero sin token (el método request solo agrega token si existe)
     return this.request<{ message: string; user: User }>('/user/register', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -333,6 +471,20 @@ class ApiService {
     return this.request<User>(`/user/${id}`);
   }
 
+  async updateUserById(id: string, data: { usuario?: string; password?: string; rol?: 'admin' | 'cliente' }): Promise<{ message: string; user: User }> {
+    return this.request<{ message: string; user: User }>(`/user/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ ...data, id }),
+    });
+  }
+
+  async deleteUserById(id: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/user/${id}`, {
+      method: 'DELETE',
+      body: JSON.stringify({ id }),
+    });
+  }
+
   async updateCurrentUser(data: Partial<{ usuario: string }>): Promise<{ message: string; user: User }> {
     return this.request<{ message: string; user: User }>('/user/me', {
       method: 'PUT',
@@ -343,6 +495,27 @@ class ApiService {
   async deleteCurrentUser(): Promise<{ message: string }> {
     return this.request<{ message: string }>('/user/me', {
       method: 'DELETE',
+    });
+  }
+
+  async changePassword(data: { id: string; currentPassword: string; newPassword: string }): Promise<{ message: string }> {
+    return this.request<{ message: string }>('/user/change-password', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async requestPasswordReset(email: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>('/user/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>('/user/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, newPassword }),
     });
   }
 
@@ -389,6 +562,60 @@ class ApiService {
 
   async getSuscriptoresStats(): Promise<{ totalSuscriptores: number; suscriptoresActivos: number; suscriptoresInactivos: number; porPais: any[] }> {
     return this.request('/suscriptor/stats');
+  }
+
+  // Métodos para pagos
+  async getPagos(params?: {
+    estado?: string;
+    metodoPago?: string;
+    reserva?: string;
+    limit?: number;
+    page?: number;
+  }): Promise<PaginatedResponse<Pago>> {
+    const queryParams = new URLSearchParams();
+    if (params?.estado) queryParams.append('estado', params.estado);
+    if (params?.metodoPago) queryParams.append('metodoPago', params.metodoPago);
+    if (params?.reserva) queryParams.append('reserva', params.reserva);
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.page) queryParams.append('page', params.page.toString());
+
+    const endpoint = `/pago${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    return this.request<PaginatedResponse<Pago>>(endpoint);
+  }
+
+  async getPagoById(id: string): Promise<Pago> {
+    return this.request<Pago>(`/pago/${id}`);
+  }
+
+  async getPagoByReserva(reservaId: string): Promise<Pago> {
+    return this.request<Pago>(`/pago/reserva/${reservaId}`);
+  }
+
+  async createPago(data: CreatePagoRequest): Promise<{ message: string; pago: Pago }> {
+    return this.request<{ message: string; pago: Pago }>('/pago', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updatePago(id: string, data: UpdatePagoRequest): Promise<{ message: string; pago: Pago }> {
+    return this.request<{ message: string; pago: Pago }>(`/pago/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async completarPago(id: string, data: { referencia?: string; datosPago?: any }): Promise<{ message: string; pago: Pago }> {
+    return this.request<{ message: string; pago: Pago }>(`/pago/${id}/completar`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deletePago(id: string): Promise<{ message: string; pago: Pago }> {
+    return this.request<{ message: string; pago: Pago }>(`/pago/${id}`, {
+      method: 'DELETE',
+    });
   }
 }
 

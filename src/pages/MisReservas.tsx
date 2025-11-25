@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import { RootState, AppDispatch } from '../store/store'
 import { 
   fetchMisReservas, 
@@ -25,13 +26,15 @@ import {
   FaTimesCircle,
   FaTrash,
   FaHashtag,
-  FaExchangeAlt
+  FaExchangeAlt,
+  FaMoneyBillWave
 } from 'react-icons/fa'
 import { convertCurrency, formatCurrency, CURRENCY_OPTIONS, Currency } from '../utils/currency'
 import './MisReservas.css'
 
 const MisReservas: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>()
+  const navigate = useNavigate()
   const { bookings, loading, error, filters, pagination } = useSelector((state: RootState) => state.bookings)
   
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
@@ -43,13 +46,18 @@ const MisReservas: React.FC = () => {
     booking: Booking | null
   }>({ type: 'cancel', booking: null })
 
+  const { user } = useSelector((state: RootState) => state.auth)
+
   useEffect(() => {
-    dispatch(fetchMisReservas({ 
-      estado: filters.estado,
-      limit: pagination.limit,
-      page: pagination.page 
-    }))
-  }, [dispatch, filters.estado, pagination.page])
+    if (user?._id) {
+      dispatch(fetchMisReservas({ 
+        estado: filters.estado,
+        usuarioId: user._id,
+        limit: pagination.limit,
+        page: pagination.page 
+      }))
+    }
+  }, [dispatch, filters.estado, pagination.page, user?._id])
 
   const handleStatusChange = (bookingId: string, _newStatus: Booking['estado']) => {
     setActionToConfirm({ type: 'cancel', booking: bookings.find((b: Booking) => b._id === bookingId) || null })
@@ -120,7 +128,7 @@ const MisReservas: React.FC = () => {
 
   const getPaymentMethodText = (method: Booking['metodoPago']) => {
     switch (method) {
-      case 'efectivo': return 'Efectivo'
+      case 'deposito': return 'Depósito Bancario'
       case 'tarjeta': return 'Tarjeta'
       case 'transferencia': return 'Transferencia'
       default: return method
@@ -210,7 +218,9 @@ const MisReservas: React.FC = () => {
             <p>Cuando hagas una reserva, aparecerá aquí.</p>
           </div>
         ) : (
-          bookings.map((booking: Booking) => (
+          bookings
+            .filter((booking: Booking) => booking.paquete && booking.paquete.nombre) // Filtrar reservas sin paquete
+            .map((booking: Booking) => (
             <motion.div
               key={booking._id}
               className="reserva-card"
@@ -220,7 +230,7 @@ const MisReservas: React.FC = () => {
             >
               <div className="reserva-header">
                 <div className="reserva-title-section">
-                  <h3>{booking.paquete.nombre}</h3>
+                  <h3>{booking.paquete?.nombre || 'Paquete no disponible'}</h3>
                   {booking.numeroReserva && (
                     <div className="numero-reserva">
                       <FaHashtag />
@@ -265,17 +275,19 @@ const MisReservas: React.FC = () => {
                 </div>
               </div>
 
-              <div className="contact-info">
-                <h4>Información de contacto:</h4>
-                <div className="contact-item">
-                  <FaEnvelope />
-                  <span>{booking.datosContacto.email}</span>
+              {booking.datosContacto && (
+                <div className="contact-info">
+                  <h4>Información de contacto:</h4>
+                  <div className="contact-item">
+                    <FaEnvelope />
+                    <span>{booking.datosContacto.email}</span>
+                  </div>
+                  <div className="contact-item">
+                    <FaPhone />
+                    <span>{booking.datosContacto.telefono}</span>
+                  </div>
                 </div>
-                <div className="contact-item">
-                  <FaPhone />
-                  <span>{booking.datosContacto.telefono}</span>
-                </div>
-              </div>
+              )}
 
               {booking.observaciones && (
                 <div className="observaciones">
@@ -291,6 +303,15 @@ const MisReservas: React.FC = () => {
                 >
                   <FaEye /> Ver detalles
                 </button>
+                
+                {booking.estado === 'confirmada' && (
+                  <button 
+                    className="btn-payment"
+                    onClick={() => navigate(`/pago/${booking._id}`)}
+                  >
+                    <FaMoneyBillWave /> Pagar
+                  </button>
+                )}
                 
                 {booking.estado === 'pendiente' && (
                   <button 
@@ -384,8 +405,8 @@ const MisReservas: React.FC = () => {
                 {selectedBooking.numeroReserva && (
                   <p><strong>Número de reserva:</strong> {selectedBooking.numeroReserva}</p>
                 )}
-                <p><strong>Paquete:</strong> {selectedBooking.paquete.nombre}</p>
-                <p><strong>Destino:</strong> {selectedBooking.paquete.destino}</p>
+                <p><strong>Paquete:</strong> {selectedBooking.paquete?.nombre || 'Paquete no disponible'}</p>
+                <p><strong>Destino:</strong> {selectedBooking.paquete?.destino || 'No disponible'}</p>
                 <p><strong>Fecha de viaje:</strong> {formatDate(selectedBooking.fechaViaje)}</p>
                 <p><strong>Cantidad de personas:</strong> {selectedBooking.cantidadPersonas}</p>
                 <p><strong>Precio total:</strong> 
@@ -396,12 +417,14 @@ const MisReservas: React.FC = () => {
                 </p>
               </div>
               
-              <div className="detail-section">
-                <h4>Información de contacto</h4>
-                <p><strong>Nombre:</strong> {selectedBooking.datosContacto.nombre}</p>
-                <p><strong>Email:</strong> {selectedBooking.datosContacto.email}</p>
-                <p><strong>Teléfono:</strong> {selectedBooking.datosContacto.telefono}</p>
-              </div>
+              {selectedBooking.datosContacto && (
+                <div className="detail-section">
+                  <h4>Información de contacto</h4>
+                  <p><strong>Nombre:</strong> {selectedBooking.datosContacto.nombre}</p>
+                  <p><strong>Email:</strong> {selectedBooking.datosContacto.email}</p>
+                  <p><strong>Teléfono:</strong> {selectedBooking.datosContacto.telefono}</p>
+                </div>
+              )}
               
               <div className="detail-section">
                 <h4>Información de pago</h4>

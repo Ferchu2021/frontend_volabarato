@@ -17,7 +17,7 @@ export interface Booking {
   cantidadPersonas: number
   precioTotal: number
   estado: 'pendiente' | 'confirmada' | 'cancelada' | 'completada'
-  metodoPago: 'efectivo' | 'tarjeta' | 'transferencia'
+  metodoPago: 'tarjeta' | 'transferencia' | 'deposito'
   observaciones?: string
   datosContacto: {
     nombre: string
@@ -111,11 +111,19 @@ export const fetchMisReservas = createAsyncThunk(
   'bookings/fetchMisReservas',
   async (params: {
     estado?: string
+    usuarioId?: string
     limit?: number
     page?: number
-  } = {}, { rejectWithValue }) => {
+  } = {}, { rejectWithValue, getState }) => {
     try {
-      const response = await apiService.getMisReservas(params)
+      // Obtener el usuario del estado de autenticación si no se proporciona
+      const state = getState() as any
+      const usuarioId = params.usuarioId || state.auth?.user?._id
+      
+      const response = await apiService.getMisReservas({
+        ...params,
+        usuarioId
+      })
       return response
     } catch (error) {
       return rejectWithValue(handleApiError(error))
@@ -128,7 +136,7 @@ export const fetchBookingById = createAsyncThunk(
   async (id: string, { rejectWithValue }) => {
     try {
       const booking = await apiService.getReservaById(id)
-      return booking
+      return booking as Booking
     } catch (error) {
       return rejectWithValue(handleApiError(error))
     }
@@ -137,10 +145,21 @@ export const fetchBookingById = createAsyncThunk(
 
 export const createBooking = createAsyncThunk(
   'bookings/createBooking',
-  async (bookingData: CreateReservaRequest, { rejectWithValue }) => {
+  async (bookingData: CreateReservaRequest, { rejectWithValue, getState }) => {
     try {
-      const response = await apiService.createReserva(bookingData)
-      return response.reserva
+      // Obtener el usuario del estado de autenticación
+      const state = getState() as any
+      const usuarioId = bookingData.usuario || state.auth?.user?._id
+      
+      if (!usuarioId) {
+        return rejectWithValue('Usuario no autenticado')
+      }
+      
+      const response = await apiService.createReserva({
+        ...bookingData,
+        usuario: usuarioId
+      })
+      return response.reserva as Booking
     } catch (error) {
       return rejectWithValue(handleApiError(error))
     }
@@ -152,7 +171,7 @@ export const updateBooking = createAsyncThunk(
   async ({ id, data }: { id: string; data: UpdateReservaRequest }, { rejectWithValue }) => {
     try {
       const response = await apiService.updateReserva(id, data)
-      return response.reserva
+      return response.reserva as Booking
     } catch (error) {
       return rejectWithValue(handleApiError(error))
     }
@@ -253,10 +272,12 @@ const bookingSlice = createSlice({
       })
       .addCase(fetchBookings.fulfilled, (state, action) => {
         state.loading = false
-        state.bookings = action.payload.data || []
+        // Convert Reserva[] to Booking[] (they have the same structure)
+        const reservas = action.payload.data || []
+        state.bookings = reservas as Booking[]
         state.pagination = action.payload.pagination || initialState.pagination
         // Update stats after fetching
-        const bookings = action.payload.data || []
+        const bookings = reservas as Booking[]
         const totalBookings = bookings.length
         const pendingBookings = bookings.filter((b: Booking) => b.estado === 'pendiente').length
         const confirmedBookings = bookings.filter((b: Booking) => b.estado === 'confirmada').length
@@ -287,7 +308,8 @@ const bookingSlice = createSlice({
       })
       .addCase(fetchMisReservas.fulfilled, (state, action) => {
         state.loading = false
-        state.bookings = action.payload.data || []
+        const reservas = action.payload.data || []
+        state.bookings = reservas as Booking[]
         state.pagination = action.payload.pagination || initialState.pagination
       })
       .addCase(fetchMisReservas.rejected, (state, action) => {
@@ -302,7 +324,7 @@ const bookingSlice = createSlice({
       })
       .addCase(fetchBookingById.fulfilled, (state, action) => {
         state.loading = false
-        state.selectedBooking = action.payload
+        state.selectedBooking = action.payload as Booking
       })
       .addCase(fetchBookingById.rejected, (state, action) => {
         state.loading = false
@@ -315,7 +337,7 @@ const bookingSlice = createSlice({
       })
       .addCase(createBooking.fulfilled, (state, action) => {
         state.loading = false
-        state.bookings.push(action.payload)
+        state.bookings.push(action.payload as Booking)
         // Update stats
         state.stats.totalBookings += 1
         state.stats.pendingBookings += 1
@@ -332,9 +354,10 @@ const bookingSlice = createSlice({
       })
       .addCase(updateBooking.fulfilled, (state, action) => {
         state.loading = false
-        const index = state.bookings.findIndex(booking => booking._id === action.payload._id)
+        const booking = action.payload as Booking
+        const index = state.bookings.findIndex(b => b._id === booking._id)
         if (index !== -1) {
-          state.bookings[index] = action.payload
+          state.bookings[index] = booking
         }
       })
       .addCase(updateBooking.rejected, (state, action) => {
@@ -349,13 +372,14 @@ const bookingSlice = createSlice({
       })
       .addCase(updateBookingStatus.fulfilled, (state, action) => {
         state.loading = false
-        const index = state.bookings.findIndex(booking => booking._id === action.payload._id)
+        const booking = action.payload as Booking
+        const index = state.bookings.findIndex(b => b._id === booking._id)
         if (index !== -1) {
           const oldStatus = state.bookings[index].estado
-          const newStatus = action.payload.estado
+          const newStatus = booking.estado
           
           // Update the booking
-          state.bookings[index] = action.payload
+          state.bookings[index] = booking
           
           // Update stats
           if (oldStatus === 'pendiente' && newStatus !== 'pendiente') {

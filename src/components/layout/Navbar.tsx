@@ -2,12 +2,12 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAppSelector, useAppDispatch } from '../../store/hooks'
 import { logoutUser } from '../../store/slices/authSlice'
-import { FaBars, FaTimes, FaUser, FaSignOutAlt } from 'react-icons/fa'
+import { FaBars, FaTimes, FaUser, FaSignOutAlt, FaCalendarAlt, FaPlus, FaLock } from 'react-icons/fa'
 import './Navbar.css'
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { isAuthenticated } = useAppSelector(state => state.auth)
+  const { isAuthenticated, user } = useAppSelector(state => state.auth)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
 
@@ -46,9 +46,23 @@ const Navbar = () => {
           
           {isAuthenticated ? (
             <>
-              <Link to="/admin" className="nav-link" onClick={() => setIsMenuOpen(false)}>
-                <FaUser className="nav-icon" />
-                Admin
+              <Link to="/mis-reservas" className="nav-link" onClick={() => setIsMenuOpen(false)}>
+                <FaCalendarAlt className="nav-icon" />
+                Mis Reservas
+              </Link>
+              <Link to="/nueva-reserva" className="nav-link" onClick={() => setIsMenuOpen(false)}>
+                <FaPlus className="nav-icon" />
+                Nueva Reserva
+              </Link>
+              {user?.rol === 'admin' && (
+                <Link to="/admin" className="nav-link" onClick={() => setIsMenuOpen(false)}>
+                  <FaUser className="nav-icon" />
+                  Admin
+                </Link>
+              )}
+              <Link to="/cambiar-contraseña" className="nav-link" onClick={() => setIsMenuOpen(false)}>
+                <FaLock className="nav-icon" />
+                Cambiar Contraseña
               </Link>
               <button className="nav-link logout-btn" onClick={handleLogout}>
                 <FaSignOutAlt className="nav-icon" />
@@ -56,9 +70,14 @@ const Navbar = () => {
               </button>
             </>
           ) : (
-            <Link to="/login" className="nav-link login-btn" onClick={() => setIsMenuOpen(false)}>
-              Iniciar Sesión
-            </Link>
+            <>
+              <Link to="/registro" className="nav-link" onClick={() => setIsMenuOpen(false)}>
+                Crear Cuenta
+              </Link>
+              <Link to="/login" className="nav-link login-btn" onClick={() => setIsMenuOpen(false)}>
+                Iniciar Sesión
+              </Link>
+            </>
           )}
         </div>
 

@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react'
-import { FaSearch, FaFilter, FaMapMarkerAlt, FaClock, FaTag, FaUsers } from 'react-icons/fa'
+import { useNavigate } from 'react-router-dom'
+import { useAppSelector } from '../store/hooks'
+import { FaSearch, FaFilter, FaMapMarkerAlt, FaClock, FaTag, FaUsers, FaCalendarCheck } from 'react-icons/fa'
 import { apiService, Paquete } from '../services/api'
 import ImageGallery from '../components/common/ImageGallery'
 import Badge from '../components/common/Badge'
 import SkeletonLoader from '../components/common/SkeletonLoader'
+import { getCategoryFromDestination } from '../utils/categoryUtils'
 import './Travels.css'
 
 interface Travel {
@@ -26,6 +29,8 @@ interface Travel {
 }
 
 const Travels = () => {
+  const navigate = useNavigate()
+  const { isAuthenticated } = useAppSelector(state => state.auth)
   const [travels, setTravels] = useState<Travel[]>([])
   const [filteredTravels, setFilteredTravels] = useState<Travel[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -34,35 +39,50 @@ const Travels = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const handleReservar = (travelId: string) => {
+    if (!isAuthenticated) {
+      navigate('/login')
+      return
+    }
+    navigate(`/nueva-reserva?paquete=${travelId}`)
+  }
+
   // Cargar paquetes reales desde el backend
   useEffect(() => {
     const loadPaquetes = async () => {
       try {
         setLoading(true)
         setError(null)
-        console.log('Cargando paquetes desde:', import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api')
+        const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api'
+        if (import.meta.env.MODE === 'development') {
+          console.log('🔄 Cargando paquetes desde:', apiUrl)
+        }
         const paquetes = await apiService.getPaquetes()
-        console.log('Paquetes cargados:', paquetes)
+        if (import.meta.env.MODE === 'development') {
+          console.log('✅ Paquetes cargados exitosamente:', paquetes.length, 'paquetes')
+        }
         
         // Convertir paquetes a formato Travel
-        const travelsFromPaquetes: Travel[] = paquetes.map((paquete) => ({
-          id: paquete._id,
-          title: paquete.nombre,
-          destination: paquete.destino,
-          price: paquete.precio,
-          currency: 'ARS',
-          duration: paquete.duracion || paquete.descripcion || 'Consultar',
-          images: paquete.imagenes && paquete.imagenes.length > 0 
-            ? paquete.imagenes 
-            : ['/images/travel-1.jpg'], // Fallback si no hay imágenes
-          description: paquete.descripcion || `Descubrí ${paquete.destino} con este increíble paquete de viaje.`,
-          category: paquete.categoria || paquete.destino.split(',')[0] || 'General',
-          destacado: paquete.destacado,
-          precioAnterior: paquete.precioAnterior,
-          cuposDisponibles: paquete.cuposDisponibles,
-          incluye: paquete.incluye,
-          paquete: paquete // Guardar referencia completa
-        }))
+        const travelsFromPaquetes: Travel[] = paquetes
+          .filter(paquete => paquete && paquete._id && paquete.nombre && paquete.destino) // Filtrar paquetes inválidos
+          .map((paquete) => ({
+            id: paquete._id,
+            title: paquete.nombre,
+            destination: paquete.destino || 'Destino no especificado',
+            price: paquete.precio || 0,
+            currency: paquete.moneda || 'USD', // Usar la moneda del paquete
+            duration: paquete.duracion || paquete.descripcion || 'Consultar',
+            images: paquete.imagenes && paquete.imagenes.length > 0 
+              ? paquete.imagenes 
+              : ['/images/travel-1.jpg'], // Fallback si no hay imágenes
+            description: paquete.descripcion || `Descubrí ${paquete.destino || 'este destino'} con este increíble paquete de viaje.`,
+            category: getCategoryFromDestination(paquete.destino || '', paquete.categoria),
+            destacado: paquete.destacado,
+            precioAnterior: paquete.precioAnterior,
+            cuposDisponibles: paquete.cuposDisponibles,
+            incluye: paquete.incluye,
+            paquete: paquete // Guardar referencia completa
+          }))
         
         setTravels(travelsFromPaquetes)
         setFilteredTravels(travelsFromPaquetes)
@@ -72,7 +92,7 @@ const Travels = () => {
           const maxPrice = Math.max(...travelsFromPaquetes.map(t => t.price))
           const minPrice = Math.min(...travelsFromPaquetes.map(t => t.price))
           setPriceRange(prev => ({
-            min: prev.min,
+            min: Math.min(prev.min, Math.max(0, minPrice - 10000)), // Ajustar mínimo con margen
             max: Math.max(prev.max, maxPrice + 50000) // Agregar margen
           }))
         }
@@ -86,7 +106,7 @@ const Travels = () => {
           status: error?.response?.status,
           data: error?.response?.data
         })
-        const errorMessage = error?.message || 'Error al cargar los paquetes. Verifica que el backend esté corriendo en http://localhost:4000'
+        const errorMessage = error?.message || 'Error al cargar los paquetes. Por favor, intenta más tarde.'
         setError(errorMessage)
         setTravels([])
         setFilteredTravels([])
@@ -100,12 +120,14 @@ const Travels = () => {
   useEffect(() => {
     let filtered = travels
 
-    console.log('🔍 Aplicando filtros:', {
-      totalTravels: travels.length,
-      searchTerm,
-      selectedCategory,
-      priceRange
-    })
+    if (import.meta.env.MODE === 'development') {
+      console.log('🔍 Aplicando filtros:', {
+        totalTravels: travels.length,
+        searchTerm,
+        selectedCategory,
+        priceRange
+      })
+    }
 
     // Filtro por término de búsqueda
     if (searchTerm) {
@@ -117,14 +139,18 @@ const Travels = () => {
         const categoryMatch = travel.category?.toLowerCase().includes(searchTerm.toLowerCase())
         return titleMatch || destMatch || descMatch || categoryMatch
       })
-      console.log(`🔍 Búsqueda "${searchTerm}": ${beforeSearch} -> ${filtered.length} resultados`)
+      if (import.meta.env.MODE === 'development') {
+        console.log(`🔍 Búsqueda "${searchTerm}": ${beforeSearch} -> ${filtered.length} resultados`)
+      }
     }
 
     // Filtro por categoría
     if (selectedCategory) {
       const beforeCategory = filtered.length
       filtered = filtered.filter(travel => travel.category === selectedCategory)
-      console.log(`🏷️ Categoría "${selectedCategory}": ${beforeCategory} -> ${filtered.length} resultados`)
+      if (import.meta.env.MODE === 'development') {
+        console.log(`🏷️ Categoría "${selectedCategory}": ${beforeCategory} -> ${filtered.length} resultados`)
+      }
     }
 
     // Filtro por rango de precio
@@ -136,13 +162,16 @@ const Travels = () => {
       }
       const inRange = travel.price >= priceRange.min && travel.price <= priceRange.max
       if (!inRange) {
-        console.log(`💰 Precio fuera de rango: ${travel.title} (${travel.price}) no está en [${priceRange.min}, ${priceRange.max}]`)
+        if (import.meta.env.MODE === 'development') {
+          console.log(`💰 Precio fuera de rango: ${travel.title} (${travel.price}) no está en [${priceRange.min}, ${priceRange.max}]`)
+        }
       }
       return inRange
     })
-    console.log(`💰 Precio [${priceRange.min}-${priceRange.max}]: ${beforePrice} -> ${filtered.length} resultados`)
-
-    console.log('✅ Resultados finales:', filtered.length)
+    if (import.meta.env.MODE === 'development') {
+      console.log(`💰 Precio [${priceRange.min}-${priceRange.max}]: ${beforePrice} -> ${filtered.length} resultados`)
+      console.log('✅ Resultados finales:', filtered.length)
+    }
     setFilteredTravels(filtered)
   }, [searchTerm, selectedCategory, priceRange, travels])
 
@@ -268,7 +297,7 @@ const Travels = () => {
             <h3>Error al cargar viajes</h3>
             <p>{error}</p>
             <p style={{ marginTop: '1rem', fontSize: '0.875rem', color: '#666' }}>
-              Verifica que el backend esté corriendo en http://localhost:4000
+              Si el problema persiste, contacta al soporte técnico.
             </p>
           </div>
         )}
@@ -334,7 +363,7 @@ const Travels = () => {
                     
                     <p className="travel-description">{travel.description}</p>
                     
-                    <div className="travel-footer">
+                      <div className="travel-footer">
                       <div className="travel-price">
                         {travel.consultPrice ? (
                           <span className="price-amount">Cotización a solicitud</span>
@@ -349,14 +378,25 @@ const Travels = () => {
                         )}
                       </div>
                       
-                      <a 
-                        href="https://web.whatsapp.com/send?phone=543412163431"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn btn-primary"
-                      >
-                        Contactanos
-                      </a>
+                      <div className="travel-actions">
+                        {isAuthenticated && (
+                          <button 
+                            onClick={() => handleReservar(travel.id)}
+                            className="btn btn-primary"
+                            style={{ marginRight: '0.5rem' }}
+                          >
+                            <FaCalendarCheck /> Reservar
+                          </button>
+                        )}
+                        <a 
+                          href="https://web.whatsapp.com/send?phone=543412163431"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`btn ${isAuthenticated ? 'btn-outline' : 'btn-primary'}`}
+                        >
+                          Contactanos
+                        </a>
+                      </div>
                     </div>
                   </div>
                 </div>

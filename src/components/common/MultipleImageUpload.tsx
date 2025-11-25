@@ -94,12 +94,6 @@ const MultipleImageUpload: React.FC<MultipleImageUploadProps> = ({
     files.forEach(processImage)
   }
 
-  const handleRemoveImage = (index: number) => {
-    const newImages = images.filter((_, i) => i !== index)
-    setImages(newImages)
-    onImagesChange(newImages)
-  }
-
   const handleClick = () => {
     if (images.length < maxImages) {
       fileInputRef.current?.click()
@@ -125,9 +119,6 @@ const MultipleImageUpload: React.FC<MultipleImageUploadProps> = ({
         <div className="multiple-image-upload__gallery">
           <ImageGallery
             images={images}
-            onImageRemove={handleRemoveImage}
-            editable={true}
-            maxImages={maxImages}
           />
         </div>
       )}

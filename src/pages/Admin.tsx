@@ -13,15 +13,16 @@ import {
 import { 
   fetchUsers, 
   createUser, 
-  updateUser
+  updateUser,
+  deleteUser
 } from '../store/slices/userSlice'
 import { 
   fetchSubscribers,
-  deleteSubscriber,
-  Subscriber as ReduxSubscriber
+  deleteSubscriber
 } from '../store/slices/subscriberSlice'
 import { useNavigate } from 'react-router-dom'
-import { FaSignOutAlt, FaPlus, FaEdit, FaTrash, FaEye, FaCheck, FaUsers } from 'react-icons/fa'
+import { FaSignOutAlt, FaPlus, FaEdit, FaTrash, FaEye, FaCheck, FaUsers, FaFileExcel } from 'react-icons/fa'
+import * as XLSX from 'xlsx'
 import TravelModal from '../components/admin/TravelModal'
 import BookingModal from '../components/admin/BookingModal'
 import SubscriberModal from '../components/admin/SubscriberModal'
@@ -29,19 +30,9 @@ import UserModal from '../components/admin/UserModal'
 import ConfirmModal from '../components/common/ConfirmModal'
 import { apiService, Paquete } from '../services/api'
 import { convertCurrency } from '../utils/currency'
+import { getCategoryFromDestination } from '../utils/categoryUtils'
 import './Admin.css'
 
-interface Travel {
-  id: string
-  title: string
-  destination: string
-  price: number
-  currency?: string
-  duration: string
-  image: string
-  description: string
-  category: string
-}
 
 interface Subscriber {
   id: string
@@ -58,7 +49,7 @@ const Admin = () => {
   const navigate = useNavigate()
   const { bookings, loading, error, stats } = useAppSelector(state => state.bookings)
   const { users: adminUsers, loading: usersLoading } = useAppSelector(state => state.users)
-  const { subscribers: reduxSubscribers, loading: subscribersLoading } = useAppSelector(state => state.subscribers)
+  const { subscribers: reduxSubscribers } = useAppSelector(state => state.subscribers)
   
   const [activeTab, setActiveTab] = useState<'travels' | 'bookings' | 'subscribers' | 'users'>('bookings')
   const [showTravelModal, setShowTravelModal] = useState(false)
@@ -94,6 +85,90 @@ const Admin = () => {
 
   const handleDeleteBooking = (bookingId: string) => {
     dispatch(deleteBooking(bookingId))
+  }
+
+  // Función para exportar ventas a Excel
+  const exportSalesToExcel = () => {
+    // Filtrar solo reservas confirmadas y completadas (ventas realizadas)
+    const sales = bookings.filter(b => b.estado === 'confirmada' || b.estado === 'completada')
+    
+    const salesData = sales.map(booking => ({
+      'Número de Reserva': booking.numeroReserva || 'N/A',
+      'Fecha de Reserva': formatDate(booking.fechaReserva),
+      'Fecha de Viaje': formatDate(booking.fechaViaje),
+      'Cliente': booking.datosContacto.nombre,
+      'Email': booking.datosContacto.email,
+      'Teléfono': booking.datosContacto.telefono,
+      'Paquete': booking.paquete?.nombre || 'N/A',
+      'Destino': booking.paquete?.destino || 'N/A',
+      'Cantidad de Personas': booking.cantidadPersonas,
+      'Precio Total': booking.precioTotal,
+      'Método de Pago': getPaymentMethodText(booking.metodoPago),
+      'Estado': getStatusText(booking.estado),
+      'Observaciones': booking.observaciones || ''
+    }))
+
+    // Agregar resumen al final
+    const totalSales = sales.reduce((sum, b) => sum + b.precioTotal, 0)
+    const summaryData = [
+      {},
+      { 'Número de Reserva': 'RESUMEN', 'Fecha de Reserva': '', 'Fecha de Viaje': '', 'Cliente': '', 'Email': '', 'Teléfono': '', 'Paquete': '', 'Destino': '', 'Cantidad de Personas': '', 'Precio Total': '', 'Método de Pago': '', 'Estado': '', 'Observaciones': '' },
+      { 'Número de Reserva': 'Total de Ventas', 'Fecha de Reserva': '', 'Fecha de Viaje': '', 'Cliente': '', 'Email': '', 'Teléfono': '', 'Paquete': '', 'Destino': '', 'Cantidad de Personas': sales.length, 'Precio Total': totalSales, 'Método de Pago': '', 'Estado': '', 'Observaciones': '' },
+      { 'Número de Reserva': 'Promedio por Venta', 'Fecha de Reserva': '', 'Fecha de Viaje': '', 'Cliente': '', 'Email': '', 'Teléfono': '', 'Paquete': '', 'Destino': '', 'Cantidad de Personas': '', 'Precio Total': sales.length > 0 ? (totalSales / sales.length).toFixed(2) : 0, 'Método de Pago': '', 'Estado': '', 'Observaciones': '' }
+    ]
+
+    const worksheet = XLSX.utils.json_to_sheet([...salesData, ...summaryData])
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Ventas')
+    
+    const fileName = `Ventas_${new Date().toISOString().split('T')[0]}.xlsx`
+    XLSX.writeFile(workbook, fileName)
+  }
+
+  // Función para exportar estados de reservas a Excel
+  const exportReservationsToExcel = () => {
+    const reservationsData = bookings.map(booking => ({
+      'Número de Reserva': booking.numeroReserva || 'N/A',
+      'Fecha de Reserva': formatDate(booking.fechaReserva),
+      'Fecha de Viaje': formatDate(booking.fechaViaje),
+      'Cliente': booking.datosContacto.nombre,
+      'Email': booking.datosContacto.email,
+      'Teléfono': booking.datosContacto.telefono,
+      'Paquete': booking.paquete?.nombre || 'N/A',
+      'Destino': booking.paquete?.destino || 'N/A',
+      'Cantidad de Personas': booking.cantidadPersonas,
+      'Precio Total': booking.precioTotal,
+      'Método de Pago': getPaymentMethodText(booking.metodoPago),
+      'Estado': getStatusText(booking.estado),
+      'Observaciones': booking.observaciones || ''
+    }))
+
+    // Agregar resumen por estado
+    const summaryByStatus = [
+      {},
+      { 'Número de Reserva': 'RESUMEN POR ESTADO', 'Fecha de Reserva': '', 'Fecha de Viaje': '', 'Cliente': '', 'Email': '', 'Teléfono': '', 'Paquete': '', 'Destino': '', 'Cantidad de Personas': '', 'Precio Total': '', 'Método de Pago': '', 'Estado': '', 'Observaciones': '' },
+      { 'Número de Reserva': 'Pendientes', 'Fecha de Reserva': '', 'Fecha de Viaje': '', 'Cliente': '', 'Email': '', 'Teléfono': '', 'Paquete': '', 'Destino': '', 'Cantidad de Personas': bookings.filter(b => b.estado === 'pendiente').length, 'Precio Total': bookings.filter(b => b.estado === 'pendiente').reduce((sum, b) => sum + b.precioTotal, 0), 'Método de Pago': '', 'Estado': '', 'Observaciones': '' },
+      { 'Número de Reserva': 'Confirmadas', 'Fecha de Reserva': '', 'Fecha de Viaje': '', 'Cliente': '', 'Email': '', 'Teléfono': '', 'Paquete': '', 'Destino': '', 'Cantidad de Personas': bookings.filter(b => b.estado === 'confirmada').length, 'Precio Total': bookings.filter(b => b.estado === 'confirmada').reduce((sum, b) => sum + b.precioTotal, 0), 'Método de Pago': '', 'Estado': '', 'Observaciones': '' },
+      { 'Número de Reserva': 'Canceladas', 'Fecha de Reserva': '', 'Fecha de Viaje': '', 'Cliente': '', 'Email': '', 'Teléfono': '', 'Paquete': '', 'Destino': '', 'Cantidad de Personas': bookings.filter(b => b.estado === 'cancelada').length, 'Precio Total': bookings.filter(b => b.estado === 'cancelada').reduce((sum, b) => sum + b.precioTotal, 0), 'Método de Pago': '', 'Estado': '', 'Observaciones': '' },
+      { 'Número de Reserva': 'Completadas', 'Fecha de Reserva': '', 'Fecha de Viaje': '', 'Cliente': '', 'Email': '', 'Teléfono': '', 'Paquete': '', 'Destino': '', 'Cantidad de Personas': bookings.filter(b => b.estado === 'completada').length, 'Precio Total': bookings.filter(b => b.estado === 'completada').reduce((sum, b) => sum + b.precioTotal, 0), 'Método de Pago': '', 'Estado': '', 'Observaciones': '' },
+      { 'Número de Reserva': 'TOTAL', 'Fecha de Reserva': '', 'Fecha de Viaje': '', 'Cliente': '', 'Email': '', 'Teléfono': '', 'Paquete': '', 'Destino': '', 'Cantidad de Personas': bookings.length, 'Precio Total': bookings.reduce((sum, b) => sum + b.precioTotal, 0), 'Método de Pago': '', 'Estado': '', 'Observaciones': '' }
+    ]
+
+    const worksheet = XLSX.utils.json_to_sheet([...reservationsData, ...summaryByStatus])
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Reservas')
+    
+    const fileName = `Reservas_${new Date().toISOString().split('T')[0]}.xlsx`
+    XLSX.writeFile(workbook, fileName)
+  }
+
+  const getPaymentMethodText = (method: string) => {
+    switch (method) {
+      case 'tarjeta': return 'Tarjeta'
+      case 'transferencia': return 'Transferencia'
+      case 'deposito': return 'Depósito Bancario'
+      default: return method
+    }
   }
 
   const formatCurrency = (amount: number) => {
@@ -147,7 +222,7 @@ const Admin = () => {
     duration: p.duracion || p.descripcion || 'Consultar',
     image: p.imagenes && p.imagenes.length > 0 ? p.imagenes[0] : '/images/travel-1.jpg',
     description: p.descripcion || `Paquete de viaje a ${p.destino}`,
-    category: p.categoria || p.destino.split(',')[0] || 'General'
+    category: getCategoryFromDestination(p.destino || '', p.categoria)
   }))
 
   // Usar suscriptores de Redux (conectados con backend real)
@@ -201,8 +276,10 @@ const Admin = () => {
         dispatch(deleteSubscriber(selectedItem.id))
       }
     } else if (activeTab === 'users') {
-      // Para usuarios, por ahora no permitimos eliminación (solo el usuario actual puede eliminarse)
-      console.log('Eliminación de usuarios no disponible desde el admin')
+      // Eliminar usuario usando Redux
+      if (selectedItem._id) {
+        dispatch(deleteUser(selectedItem._id))
+      }
     }
     setShowConfirmModal(false)
     setSelectedItem(null)
@@ -268,10 +345,22 @@ const Admin = () => {
         </div>
 
         <div className="admin-actions">
-          <button className="btn btn-primary" onClick={handleCreate}>
-            <FaPlus />
-            Crear Nuevo
-          </button>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <button className="btn btn-primary" onClick={handleCreate}>
+              <FaPlus />
+              Crear Nuevo
+            </button>
+            {activeTab === 'bookings' && (
+              <>
+                <button className="btn-export" onClick={exportSalesToExcel}>
+                  <FaFileExcel /> Exportar Ventas
+                </button>
+                <button className="btn-export" onClick={exportReservationsToExcel}>
+                  <FaFileExcel /> Exportar Reservas
+                </button>
+              </>
+            )}
+          </div>
           <button className="btn btn-outline" onClick={handleLogout}>
             <FaSignOutAlt />
             Cerrar Sesión
@@ -457,20 +546,21 @@ const Admin = () => {
                   <tr>
                     <th>ID</th>
                     <th>Usuario</th>
+                    <th>Rol</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {usersLoading ? (
                     <tr>
-                      <td colSpan={3} style={{ textAlign: 'center', padding: '2rem' }}>
+                      <td colSpan={4} style={{ textAlign: 'center', padding: '2rem' }}>
                         <div className="spinner"></div>
                         <p>Cargando usuarios...</p>
                       </td>
                     </tr>
                   ) : adminUsers.length === 0 ? (
                     <tr>
-                      <td colSpan={3} style={{ textAlign: 'center', padding: '2rem' }}>
+                      <td colSpan={4} style={{ textAlign: 'center', padding: '2rem' }}>
                         <p>No hay usuarios disponibles</p>
                       </td>
                     </tr>
@@ -479,10 +569,14 @@ const Admin = () => {
                       <tr key={user._id}>
                         <td>{user._id}</td>
                         <td>{user.usuario}</td>
+                        <td>{user.rol || 'cliente'}</td>
                         <td>
                           <div className="action-buttons">
                             <button className="btn-icon" onClick={() => handleEdit(user)}>
                               <FaEdit />
+                            </button>
+                            <button className="btn-icon danger" onClick={() => handleDelete(user)}>
+                              <FaTrash />
                             </button>
                           </div>
                         </td>
@@ -503,13 +597,16 @@ const Admin = () => {
           onClose={() => setShowTravelModal(false)}
           travel={selectedItem}
           action={action === 'delete' ? 'edit' : action}
-          onSave={(travelData) => {
-            if (action === 'create') {
-              setTravels(prev => [...prev, { ...travelData, id: Date.now().toString() }])
-            } else {
-              setTravels(prev => prev.map(t => t.id === String(travelData.id) ? { ...travelData, id: String(travelData.id) } : t))
+          onSave={async () => {
+            try {
+              // El modal maneja la creación/actualización internamente
+              // Solo cerramos el modal y recargamos los paquetes
+              setShowTravelModal(false)
+              const paquetesData = await apiService.getPaquetes()
+              setPaquetes(paquetesData)
+            } catch (error) {
+              console.error('Error al guardar viaje:', error)
             }
-            setShowTravelModal(false)
           }}
         />
       )}
@@ -605,20 +702,15 @@ const Admin = () => {
           onClose={() => setShowSubscriberModal(false)}
           subscriber={selectedItem}
           action={action === 'delete' ? 'edit' : action}
-          onSave={(subscriberData) => {
-            if (action === 'create') {
-              setSubscribers(prev => [
-                ...prev,
-                { ...subscriberData, id: Date.now().toString(), subscribedAt: new Date().toISOString() }
-              ])
-            } else {
-              setSubscribers(prev => prev.map(s => 
-                s.id === subscriberData.id 
-                  ? { ...subscriberData, id: String(subscriberData.id), subscribedAt: s.subscribedAt } 
-                  : s
-              ))
+          onSave={async () => {
+            try {
+              // El modal maneja la creación/actualización internamente
+              // Solo cerramos el modal y recargamos los suscriptores
+              setShowSubscriberModal(false)
+              dispatch(fetchSubscribers())
+            } catch (error) {
+              console.error('Error al guardar suscriptor:', error)
             }
-            setShowSubscriberModal(false)
           }}
         />
       )}
@@ -635,11 +727,15 @@ const Admin = () => {
                 await dispatch(createUser(userData)).unwrap()
                 await dispatch(fetchUsers())
               } else if (action === 'edit') {
-                await dispatch(updateUser(userData)).unwrap()
+                await dispatch(updateUser({ 
+                  id: selectedItem._id, 
+                  ...userData 
+                })).unwrap()
                 await dispatch(fetchUsers())
               }
             } catch (error) {
               console.error('Error guardando usuario:', error)
+              alert('Error al guardar el usuario: ' + (error as any)?.message || 'Error desconocido')
             }
           }}
         />

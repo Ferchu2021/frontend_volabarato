@@ -12,6 +12,7 @@
   "dependencies": {
     "@reduxjs/toolkit": "^1.9.5",
     "@vercel/speed-insights": "^1.2.0",
+    "firebase": "^12.6.0",
     "framer-motion": "^10.12.16",
     "joi": "^17.9.2",
     "mongoose": "^8.19.1",
@@ -21,11 +22,13 @@
     "react-icons": "^4.10.1",
     "react-redux": "^8.1.1",
     "react-router-dom": "^6.8.1",
-    "swiper": "^10.0.4"
+    "swiper": "^10.0.4",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
+    "@types/xlsx": "^0.0.35",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "@vitejs/plugin-react": "^4.0.3",
