@@ -144,10 +144,10 @@ const Admin = () => {
     destination: p.destino,
     price: p.precio,
     currency: 'ARS',
-    duration: p.descripcion || 'Consultar',
-    image: '/images/travel-1.jpg',
+    duration: p.duracion || p.descripcion || 'Consultar',
+    image: p.imagenes && p.imagenes.length > 0 ? p.imagenes[0] : '/images/travel-1.jpg',
     description: p.descripcion || `Paquete de viaje a ${p.destino}`,
-    category: p.destino.split(',')[0] || 'General'
+    category: p.categoria || p.destino.split(',')[0] || 'General'
   }))
 
   // Usar suscriptores de Redux (conectados con backend real)

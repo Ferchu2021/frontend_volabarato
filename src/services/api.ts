@@ -85,6 +85,18 @@ export interface Paquete {
   precio: number;
   descripcion?: string;
   activo: boolean;
+  // Nuevos campos para información detallada
+  imagenes?: string[]; // Múltiples imágenes por paquete
+  duracion?: string; // "7 días / 6 noches"
+  fechaSalida?: string; // Fecha de salida específica
+  fechaRegreso?: string; // Fecha de regreso específica
+  incluye?: string[]; // ["Vuelos", "Hotel", "Desayuno", "Traslados"]
+  noIncluye?: string[]; // ["Almuerzos", "Propinas", "Seguro"]
+  requisitos?: string[]; // ["Pasaporte vigente", "Vacuna fiebre amarilla"]
+  categoria?: string; // "Aventura", "Playa", "Cultural", etc.
+  destacado?: boolean; // Para mostrar en home
+  cuposDisponibles?: number; // Disponibilidad real
+  precioAnterior?: number; // Para mostrar descuentos
 }
 
 // Interfaces para Usuario
