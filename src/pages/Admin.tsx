@@ -636,6 +636,10 @@ const Admin = () => {
           action={action === 'delete' ? 'edit' : action}
           travels={paquetes}
           onSave={async (bookingData: any) => {
+            // Si está en modo 'view', no hacer nada
+            if (action === 'view') {
+              return
+            }
             try {
               if (action === 'create') {
                 // Mapear los datos del formulario a CreateReservaRequest

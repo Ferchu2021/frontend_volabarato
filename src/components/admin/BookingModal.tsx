@@ -51,6 +51,10 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave, travels = [] }
   })
 
   const onSubmit = (data: Booking) => {
+    // Si está en modo 'view', no hacer nada
+    if (action === 'view') {
+      return
+    }
     const bookingData = {
       ...data,
       id: booking?.id || Date.now().toString(),
@@ -82,7 +86,7 @@ const BookingModal = ({ isOpen, onClose, booking, action, onSave, travels = [] }
           </button>
         </div>
         
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={action === 'view' ? (e) => e.preventDefault() : handleSubmit(onSubmit)}>
           <div className="modal-body">
             <div className="form-row">
               <div className="form-group">
