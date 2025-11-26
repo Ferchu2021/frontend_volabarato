@@ -283,13 +283,25 @@ class ApiService {
         if (import.meta.env.MODE === 'development') {
           console.error('API Error Response:', errorData);
         }
-        // Incluir mensaje del backend si está disponible (priorizar details, luego message, luego error)
-        const errorMessage = errorData.details 
-          ? `${errorData.error || 'Error'}: ${errorData.details}`
-          : errorData.message 
-            ? `${errorData.error || 'Error'}: ${errorData.message}`
-            : errorData.error || `HTTP error! status: ${response.status}`;
-        throw new Error(errorMessage);
+        
+        // Construir mensaje de error con detalles
+        let errorMessage = errorData.error || `HTTP error! status: ${response.status}`;
+        
+        // Si hay detalles de validación, incluirlos
+        if (errorData.detalles && Array.isArray(errorData.detalles) && errorData.detalles.length > 0) {
+          const detallesTexto = errorData.detalles
+            .map((d: any) => `  • ${d.campo}: ${d.mensaje}`)
+            .join('\n');
+          errorMessage = `${errorMessage}\n\nDetalles de validación:\n${detallesTexto}`;
+        } else if (errorData.details) {
+          errorMessage = `${errorMessage}: ${errorData.details}`;
+        } else if (errorData.message) {
+          errorMessage = `${errorMessage}: ${errorData.message}`;
+        }
+        
+        const error = new Error(errorMessage);
+        (error as any).errorData = errorData; // Adjuntar datos completos del error
+        throw error;
       }
 
       const data = await response.json();

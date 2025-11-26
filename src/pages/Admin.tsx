@@ -18,6 +18,8 @@ import {
 } from '../store/slices/userSlice'
 import { 
   fetchSubscribers,
+  addSubscriber,
+  updateSubscriber,
   deleteSubscriber
 } from '../store/slices/subscriberSlice'
 import { useNavigate } from 'react-router-dom'
@@ -603,15 +605,83 @@ const Admin = () => {
           onClose={() => setShowTravelModal(false)}
           travel={selectedItem}
           action={action === 'delete' ? 'edit' : action}
-          onSave={async () => {
+          onSave={async (travelData: any) => {
+            let paqueteData: any = null
             try {
-              // El modal maneja la creación/actualización internamente
-              // Solo cerramos el modal y recargamos los paquetes
-              setShowTravelModal(false)
+              // Transformar los datos del modal al formato del backend
+              const precioEnARS = travelData.currency === 'ARS' 
+                ? Number(travelData.price) 
+                : convertCurrency(Number(travelData.price), travelData.currency || 'USD', 'ARS')
+              
+              // Validar campos requeridos
+              if (!travelData.title || !travelData.destination || !travelData.price) {
+                alert('Por favor, completa todos los campos requeridos (Título, Destino, Precio)')
+                return
+              }
+
+              // Crear objeto de datos para el backend
+              // Joi acepta strings ISO como fechas automáticamente
+              const fechaActual = new Date()
+              paqueteData = {
+                nombre: travelData.title.trim(),
+                destino: travelData.destination.trim(),
+                precio: precioEnARS,
+                fecha: fechaActual.toISOString(), // Fecha actual en formato ISO string
+                activo: true
+              }
+
+              // Agregar descripción solo si tiene valor
+              if (travelData.description && travelData.description.trim()) {
+                paqueteData.descripcion = travelData.description.trim()
+              }
+
+              // Agregar campos opcionales solo si tienen valor
+              if (travelData.currency) {
+                paqueteData.moneda = travelData.currency
+              }
+              if (travelData.category && travelData.category.trim()) {
+                paqueteData.categoria = travelData.category.trim()
+              }
+              if (travelData.duration && travelData.duration.trim()) {
+                paqueteData.duracion = travelData.duration.trim()
+              }
+              if (travelData.image && travelData.image.trim()) {
+                paqueteData.imagenes = [travelData.image.trim()]
+              }
+              
+              console.log('Datos del paquete a enviar:', paqueteData)
+
+              if (action === 'create') {
+                await apiService.createPaquete(paqueteData)
+              } else if (action === 'edit' && travelData.id) {
+                await apiService.updatePaquete(travelData.id, paqueteData)
+              }
+              
+              // Recargar paquetes y cerrar modal
               const paquetesData = await apiService.getPaquetes()
               setPaquetes(paquetesData)
-            } catch (error) {
+              setShowTravelModal(false)
+              setSelectedItem(null)
+            } catch (error: any) {
               console.error('Error al guardar viaje:', error)
+              if (paqueteData) {
+                console.error('Datos enviados:', paqueteData)
+              }
+              
+              // Mostrar detalles del error si están disponibles
+              let errorMessage = 'Error al guardar el viaje. Por favor, intenta nuevamente.'
+              
+              if (error?.message) {
+                errorMessage = error.message
+              }
+              
+              // Si hay datos adicionales del error, incluirlos
+              if (error?.errorData) {
+                console.error('Detalles del error del backend:', error.errorData)
+              }
+              
+              // Mostrar alerta con el mensaje (puede contener múltiples líneas)
+              alert(errorMessage)
             }
           }}
         />
@@ -712,14 +782,36 @@ const Admin = () => {
           onClose={() => setShowSubscriberModal(false)}
           subscriber={selectedItem}
           action={action === 'delete' ? 'edit' : action}
-          onSave={async () => {
+          onSave={async (subscriberData: Subscriber) => {
             try {
-              // El modal maneja la creación/actualización internamente
-              // Solo cerramos el modal y recargamos los suscriptores
+              // Transformar los datos del modal al formato del backend
+              const backendData = {
+                nombre: subscriberData.firstName,
+                apellido: subscriberData.lastName,
+                email: subscriberData.email,
+                pais: subscriberData.country,
+                ciudad: subscriberData.city
+              }
+
+              if (action === 'create') {
+                await dispatch(addSubscriber(backendData)).unwrap()
+              } else if (action === 'edit') {
+                // Usar el ID del selectedItem o del subscriberData
+                const subscriberId = selectedItem?.id || subscriberData.id
+                if (!subscriberId) {
+                  throw new Error('ID del suscriptor no encontrado')
+                }
+                await dispatch(updateSubscriber({ id: subscriberId, data: backendData })).unwrap()
+              }
+              
+              // Recargar suscriptores y cerrar modal
+              await dispatch(fetchSubscribers())
               setShowSubscriberModal(false)
-              dispatch(fetchSubscribers())
-            } catch (error) {
+              setSelectedItem(null)
+            } catch (error: any) {
               console.error('Error al guardar suscriptor:', error)
+              const errorMessage = error?.message || error?.payload || 'Error al guardar el suscriptor. Por favor, intenta nuevamente.'
+              alert(errorMessage)
             }
           }}
         />
